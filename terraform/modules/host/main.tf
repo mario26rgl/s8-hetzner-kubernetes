@@ -16,7 +16,7 @@ resource "hcloud_server" "server" {
   image              = var.microos_snapshot_id
   server_type        = var.server_type
   location           = var.location
-  ssh_keys           = [var.ssh_agent_identity] # Same as bastion key
+  ssh_keys           = var.ssh_keys
   firewall_ids       = var.firewall_ids
   placement_group_id = var.placement_group_id
   backups            = var.backups

@@ -11,6 +11,7 @@ module "control_planes" {
   microos_snapshot_id              = data.hcloud_image.microos_x86_snapshot.id
   ssh_port                         = var.ssh_port
   ssh_agent_identity               = var.ssh_public_key
+  ssh_keys                         = length(var.ssh_hcloud_key_label) > 0 ? concat([local.hcloud_ssh_key_id], data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.id) : [local.hcloud_ssh_key_id]
   ssh_additional_public_keys       = var.ssh_additional_public_keys
   placement_group_id               = null
   location                         = each.value.location

@@ -3,7 +3,9 @@ locals {
   first_nodepool_snapshot_id = length(var.autoscaler_nodepools) == 0 ? "" : data.hcloud_image.microos_x86_snapshot.id
 
   cluster_config = {
-    imagesForArch : tostring(data.hcloud_image.microos_x86_snapshot.id)
+    imagesForArch : {
+      amd64 : tostring(data.hcloud_image.microos_x86_snapshot.id)
+    }
     nodeConfigs : {
       for index, nodePool in var.autoscaler_nodepools :
       ("${local.cluster_prefix}${nodePool.name}") => {

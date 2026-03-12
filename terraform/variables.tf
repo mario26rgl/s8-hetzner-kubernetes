@@ -402,8 +402,8 @@ variable "hetzner_ccm_version" {
 
 variable "hetzner_ccm_use_helm" {
   type        = bool
-  default     = false
-  description = "Whether to use the helm chart for the Hetzner CCM or the legacy manifest which is the default."
+  default     = true
+  description = "Whether to use the helm chart for the Hetzner CCM."
 }
 
 variable "hetzner_csi_version" {

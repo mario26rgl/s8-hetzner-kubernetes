@@ -20,6 +20,11 @@ variable "ssh_agent_identity" {
   type        = string
 }
 
+variable "ssh_keys" {
+  description = "List of Hetzner SSH key IDs to attach to the server"
+  type        = list(string)
+}
+
 variable "ssh_private_key" {
   description = "SSH private Key"
   type        = string
