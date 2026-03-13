@@ -22,6 +22,12 @@ terraform {
       version = "~> 1.0"
     }
   }
+  backend "s3" {
+    bucket       = "s8-hetzner-k8s-tfstate"
+    key          = "backend/terraform.tfstate"
+    region       = "eu-central-1"
+    use_lockfile = true
+  }
 }
 
 provider "hcloud" {
