@@ -81,7 +81,7 @@ jobs:
         id: plan
         # pipefail is the default in GitHub Actions bash, so the exit code
         # from terraform propagates through tee correctly.
-        run: terraform plan -out=tfplan.binary -no-color 2>&1 | tee plan.txt
+        run: terraform plan -var-file="../config/PROD.tfvars" -out=tfplan.binary -no-color 2>&1 | tee plan.txt
 
       - name: Upload plan artifact to S3
         # Only upload on successful plan so the apply workflow never picks up a broken plan.
