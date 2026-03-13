@@ -21,6 +21,14 @@ terraform {
       source  = "isometry/deepmerge"
       version = "~> 1.0"
     }
+    cloudinit = {
+      source  = "hashicorp/cloudinit"
+      version = ">= 2.3.7"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = ">= 3.8.1"
+    }
   }
   backend "s3" {
     bucket       = "s8-hetzner-k8s-tfstate"

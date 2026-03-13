@@ -24,19 +24,19 @@ resource "hcloud_load_balancer" "cluster" {
 resource "hcloud_load_balancer_network" "cluster" {
   count = local.has_external_load_balancer ? 0 : 1
 
-  load_balancer_id = hcloud_load_balancer.cluster.*.id[0]
+  load_balancer_id = hcloud_load_balancer.cluster[0].id
   # Use -2 to get the last usable IP in the subnet
   ip = cidrhost(
     (
       length(hcloud_network_subnet.agent) > 0
-      ? hcloud_network_subnet.agent.*.ip_range[0]
-      : hcloud_network_subnet.control_plane.*.ip_range[0]
+      ? hcloud_network_subnet.agent[0].ip_range
+      : hcloud_network_subnet.control_plane[0].ip_range
     )
   , -2)
   subnet_id = (
     length(hcloud_network_subnet.agent) > 0
-    ? hcloud_network_subnet.agent.*.id[0]
-    : hcloud_network_subnet.control_plane.*.id[0]
+    ? hcloud_network_subnet.agent[0].id
+    : hcloud_network_subnet.control_plane[0].id
   )
   enable_public_interface = true
 
@@ -54,7 +54,7 @@ resource "hcloud_load_balancer_target" "cluster" {
 
   depends_on       = [hcloud_load_balancer_network.cluster]
   type             = "label_selector"
-  load_balancer_id = hcloud_load_balancer.cluster.*.id[0]
+  load_balancer_id = hcloud_load_balancer.cluster[0].id
   label_selector = join(",", concat(
     [for k, v in local.labels : "${k}=${v}"],
     [
@@ -121,8 +121,8 @@ resource "terraform_data" "first_control_plane" {
         var.use_control_plane_lb ? {
           tls-san = concat(
             compact([
-              hcloud_load_balancer.control_plane.*.ipv4[0],
-              hcloud_load_balancer_network.control_plane.*.ip[0],
+              hcloud_load_balancer.control_plane[0].ipv4,
+              hcloud_load_balancer_network.control_plane[0].ip,
               var.kubeconfig_server_address != "" ? var.kubeconfig_server_address : null,
               !var.control_plane_lb_enable_public_interface && var.nat_router != null ? hcloud_server.nat_router[0].ipv4_address : null
             ]),
@@ -431,7 +431,7 @@ resource "terraform_data" "kustomization" {
       local.has_external_load_balancer ? [] : [
         <<-EOT
       timeout 360 bash <<EOF
-      until [ -n "\$(kubectl get -n ${local.ingress_controller_namespace} service/${lookup(local.ingress_controller_service_names, var.ingress_controller)} --output=jsonpath='{.status.loadBalancer.ingress[0].${var.lb_hostname != "" ? "hostname" : "ip"}}' 2> /dev/null)" ]; do
+      until [ -n "\$(kubectl get -n ${local.ingress_controller_namespace} service/${local.ingress_controller_service_names[var.ingress_controller]} --output=jsonpath='{.status.loadBalancer.ingress[0].${var.lb_hostname != "" ? "hostname" : "ip"}}' 2> /dev/null)" ]; do
           echo "Waiting for load-balancer to get an IP..."
           sleep 2
       done

@@ -9,7 +9,7 @@ locals {
   k3s_token = random_password.k3s_token.result
 
   # k3s endpoint used for agent registration, respects control_plane_endpoint override
-  k3s_endpoint = coalesce(var.control_plane_endpoint, "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443")
+  k3s_endpoint = coalesce(var.control_plane_endpoint, "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane[0].ip : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443")
 
   ccm_version   = var.hetzner_ccm_version != null ? var.hetzner_ccm_version : data.github_release.hetzner_ccm[0].release_tag
   csi_version   = length(data.github_release.hetzner_csi) == 0 ? var.hetzner_csi_version : data.github_release.hetzner_csi[0].release_tag
@@ -353,7 +353,7 @@ locals {
   network_gw_ipv4 = cidrhost(var.network_ipv4_cidr, 1)
 
   # if we are in a single node cluster config, we use the default klipper lb instead of Hetzner LB
-  control_plane_count    = sum([for v in var.control_plane_nodepools : v.count])
+  control_plane_count    = try(sum([for v in var.control_plane_nodepools : v.count]), 0)
   agent_count            = length(var.agent_nodepools) > 0 ? sum([for v in var.agent_nodepools : length(coalesce(v.nodes, {})) + coalesce(v.count, 0)]) : 0
   autoscaler_max_count   = length(var.autoscaler_nodepools) > 0 ? sum([for v in var.autoscaler_nodepools : v.max_nodes]) : 0
   is_single_node_cluster = (local.control_plane_count + local.agent_count + local.autoscaler_max_count) == 1

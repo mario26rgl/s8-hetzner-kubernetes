@@ -125,18 +125,6 @@ variable "nat_router" {
   }
 }
 
-variable "nat_router_hcloud_token" {
-  description = "API Token used by the nat-router to change ip assignment when nat_router.enable_redundancy is true."
-  type        = string
-  default     = ""
-  sensitive   = true
-
-  validation {
-    condition     = var.nat_router == null || !var.nat_router.enable_redundancy || var.nat_router_hcloud_token != ""
-    error_message = "When nat_router.enable_redundancy is true, nat_router_hcloud_token must be provided."
-  }
-}
-
 variable "nat_router_subnet_index" {
   type        = number
   default     = 200
@@ -708,17 +696,6 @@ variable "cluster_name" {
   validation {
     condition     = can(regex("^[a-z0-9\\-]+$", var.cluster_name))
     error_message = "The cluster name must be in the form of lowercase alphanumeric characters and/or dashes."
-  }
-}
-
-variable "base_domain" {
-  type        = string
-  default     = ""
-  description = "Base domain of the cluster, used for reverse dns."
-
-  validation {
-    condition     = can(regex("^(?:(?:(?:[A-Za-z0-9])|(?:[A-Za-z0-9](?:[A-Za-z0-9\\-]+)?[A-Za-z0-9]))+(\\.))+([A-Za-z]{2,})([\\/?])?([\\/?][A-Za-z0-9\\-%._~:\\/?#\\[\\]@!\\$&\\'\\(\\)\\*\\+,;=]+)?$", var.base_domain)) || var.base_domain == ""
-    error_message = "It must be a valid domain name (FQDN)."
   }
 }
 
