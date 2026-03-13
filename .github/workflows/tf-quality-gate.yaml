@@ -11,6 +11,7 @@ env:
   TF_PLAN_BUCKET: s8-hetzner-k8s-tfstate
   TF_PLAN_REGION: eu-central-1
   TF_PLAN_PREFIX: plans
+  GITHUB_TOKEN: ${{ github.token }}
 
 jobs:
   lint:
@@ -31,8 +32,8 @@ jobs:
       - name: Init TFLint
         run: tflint --init
         # Uncomment to avoid GitHub API rate limits on plugin downloads:
-        # env:
-        #   GITHUB_TOKEN: ${{ github.token }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Run TFLint
         run: tflint -f compact
@@ -45,11 +46,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: aquasecurity/trivy-action@0.30.0
+      - uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: config
           scan-ref: ./terraform
           severity: CRITICAL,HIGH
+          version: latest
 
   plan:
     name: Terraform Plan
