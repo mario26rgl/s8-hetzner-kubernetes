@@ -32,11 +32,11 @@ locals {
   kubeconfig_server_address = var.kubeconfig_server_address != "" ? var.kubeconfig_server_address : (var.use_control_plane_lb ?
     (
       var.control_plane_lb_enable_public_interface ?
-      hcloud_load_balancer.control_plane.*.ipv4[0]
+      hcloud_load_balancer.control_plane[0].ipv4
       : (
         var.nat_router != null ?
         hcloud_server.nat_router[0].ipv4_address
-        : hcloud_load_balancer_network.control_plane.*.ip[0]
+        : hcloud_load_balancer_network.control_plane[0].ip
       )
     )
     :

@@ -11,7 +11,7 @@ module "control_planes" {
   microos_snapshot_id              = data.hcloud_image.microos_x86_snapshot.id
   ssh_port                         = var.ssh_port
   ssh_agent_identity               = var.ssh_public_key
-  ssh_keys                         = length(var.ssh_hcloud_key_label) > 0 ? concat([local.hcloud_ssh_key_id], data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.id) : [local.hcloud_ssh_key_id]
+  ssh_keys                         = length(var.ssh_hcloud_key_label) > 0 ? concat([local.hcloud_ssh_key_id], data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys[*].id) : [local.hcloud_ssh_key_id]
   ssh_additional_public_keys       = var.ssh_additional_public_keys
   placement_group_id               = null
   location                         = each.value.location
@@ -69,10 +69,10 @@ resource "hcloud_load_balancer" "control_plane" {
 resource "hcloud_load_balancer_network" "control_plane" {
   count = var.use_control_plane_lb ? 1 : 0
 
-  load_balancer_id        = hcloud_load_balancer.control_plane.*.id[0]
-  subnet_id               = hcloud_network_subnet.control_plane.*.id[0]
+  load_balancer_id        = hcloud_load_balancer.control_plane[0].id
+  subnet_id               = hcloud_network_subnet.control_plane[0].id
   enable_public_interface = var.control_plane_lb_enable_public_interface
-  ip                      = cidrhost(hcloud_network_subnet.control_plane.*.ip_range[0], -2)
+  ip                      = cidrhost(hcloud_network_subnet.control_plane[0].ip_range, -2)
 
   # Keep existing LB IPs stable on upgrade.
   lifecycle {
@@ -85,7 +85,7 @@ resource "hcloud_load_balancer_target" "control_plane" {
 
   depends_on       = [hcloud_load_balancer_network.control_plane]
   type             = "label_selector"
-  load_balancer_id = hcloud_load_balancer.control_plane.*.id[0]
+  load_balancer_id = hcloud_load_balancer.control_plane[0].id
   label_selector   = join(",", [for k, v in merge(local.labels, local.labels_control_plane_node) : "${k}=${v}"])
   use_private_ip   = true
 }
@@ -93,7 +93,7 @@ resource "hcloud_load_balancer_target" "control_plane" {
 resource "hcloud_load_balancer_service" "control_plane" {
   count = var.use_control_plane_lb ? 1 : 0
 
-  load_balancer_id = hcloud_load_balancer.control_plane.*.id[0]
+  load_balancer_id = hcloud_load_balancer.control_plane[0].id
   protocol         = "tcp"
   destination_port = "6443"
   listen_port      = "6443"
@@ -116,7 +116,7 @@ locals {
       server = length(module.control_planes) == 1 ? null : coalesce(
         var.control_plane_endpoint,
         "https://${
-          var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] :
+          var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane[0].ip :
           (
             module.control_planes[k].private_ipv4_address == module.control_planes[keys(module.control_planes)[0]].private_ipv4_address ?
             module.control_planes[keys(module.control_planes)[1]].private_ipv4_address :
@@ -147,8 +147,8 @@ locals {
     var.use_control_plane_lb ? {
       tls-san = concat( # TLS SAN for the certificate - must include all possible API server endpoints (LB IP, direct IPs, custom endpoint) to avoid "x509: certificate is valid for ..., not <endpoint>" errors when accessing the cluster
         compact([
-          hcloud_load_balancer.control_plane.*.ipv4[0],
-          hcloud_load_balancer_network.control_plane.*.ip[0],
+          hcloud_load_balancer.control_plane[0].ipv4,
+          hcloud_load_balancer_network.control_plane[0].ip,
           var.kubeconfig_server_address != "" ? var.kubeconfig_server_address : null,
           local.control_plane_endpoint_host,
           !var.control_plane_lb_enable_public_interface && var.nat_router != null ? hcloud_server.nat_router[0].ipv4_address : null

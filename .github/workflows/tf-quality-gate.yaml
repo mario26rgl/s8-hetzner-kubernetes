@@ -1,0 +1,112 @@
+name: Terraform Quality Gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/tf-quality-gate.yaml'
+
+env:
+  TF_PLAN_BUCKET: s8-hetzner-k8s-tfstate
+  TF_PLAN_REGION: eu-central-1
+  TF_PLAN_PREFIX: plans
+
+jobs:
+  lint:
+    name: TFLint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      - name: Init TFLint
+        run: tflint --init
+        # Uncomment to avoid GitHub API rate limits on plugin downloads:
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Run TFLint
+        run: tflint -f compact
+
+  security:
+    name: Trivy Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: config
+          scan-ref: ./terraform
+          severity: CRITICAL,HIGH
+          version: latest
+
+  plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    needs: [lint, security]
+    permissions:
+      contents: read
+      pull-requests: write
+    defaults:
+      run:
+        working-directory: terraform
+    env:
+      TF_VAR_hcloud_token: ${{ secrets.HCLOUD_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: latest
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        id: plan
+        # pipefail is the default in GitHub Actions bash, so the exit code
+        # from terraform propagates through tee correctly.
+        run: terraform plan -var-file="../config/PROD.tfvars" -out=tfplan.binary -no-color 2>&1 | tee plan.txt
+
+      - name: Upload plan artifact to S3
+        # Only upload on successful plan so the apply workflow never picks up a broken plan.
+        run: |
+          aws s3 cp tfplan.binary \
+            "s3://${{ env.TF_PLAN_BUCKET }}/${{ env.TF_PLAN_PREFIX }}/tfplan-${{ github.event.pull_request.head.sha }}.binary" \
+            --region ${{ env.TF_PLAN_REGION }}
+
+      - name: Post plan as PR comment
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Truncate to stay within GitHub comment size limits (65536 chars).
+          PLAN_CONTENT=$(head -c 60000 plan.txt)
+          {
+            echo "## Terraform Plan \`${{ github.event.pull_request.head.sha }}\`"
+            echo ""
+            echo "<details><summary>Show Plan</summary>"
+            echo ""
+            echo '```terraform'
+            echo "$PLAN_CONTENT"
+            echo '```'
+            echo ""
+            echo "</details>"
+          } > /tmp/pr-comment.md
+          gh pr comment "${{ github.event.pull_request.number }}" \
+            --body-file /tmp/pr-comment.md \
+            --repo "${{ github.repository }}"

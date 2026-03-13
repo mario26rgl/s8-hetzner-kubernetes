@@ -77,7 +77,7 @@ resource "hcloud_server" "nat_router" {
   image        = "debian-12"
   server_type  = var.nat_router.server_type
   location     = var.nat_router.location
-  ssh_keys     = length(var.ssh_hcloud_key_label) > 0 ? concat([local.hcloud_ssh_key_id], data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.id) : [local.hcloud_ssh_key_id]
+  ssh_keys     = length(var.ssh_hcloud_key_label) > 0 ? concat([local.hcloud_ssh_key_id], data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys[*].id) : [local.hcloud_ssh_key_id]
   firewall_ids = [hcloud_firewall.k3s.id]
   user_data    = data.cloudinit_config.nat_router_config[count.index].rendered
   keep_disk    = false

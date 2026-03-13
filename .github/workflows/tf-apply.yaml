@@ -1,0 +1,99 @@
+name: Terraform Apply
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/tf-apply.yaml'
+
+# How plan → apply consistency works:
+#   A regular merge commit has two parents:
+#     parent 1 = previous main HEAD
+#     parent 2 = PR branch HEAD  ← the SHA used to store the plan artifact
+#   This workflow extracts parent 2 and downloads the exact tfplan binary that
+#   was reviewed in the PR, then applies it verbatim.
+#
+#   Squash-merge / rebase-merge / direct push produce a single-parent commit,
+#   meaning no pre-existing plan artifact → falls back to a fresh apply.
+#
+#   If you want to enforce plan-only applies (no fresh fallback), remove the
+#   "Terraform Apply (fresh fallback)" step and let the workflow fail instead.
+
+env:
+  TF_PLAN_BUCKET: s8-hetzner-k8s-tfstate
+  TF_PLAN_REGION: eu-central-1
+  TF_PLAN_PREFIX: plans
+
+jobs:
+  apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: terraform
+    env:
+      TF_VAR_hcloud_token: ${{ secrets.HCLOUD_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Fetch full history so git log can inspect merge commit parents.
+          fetch-depth: 0
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: latest
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Resolve plan artifact
+        id: resolve
+        run: |
+          # Count parents of the current HEAD commit.
+          PARENTS=$(git log --pretty=format:'%P' -n 1)
+          PARENT_COUNT=$(echo "$PARENTS" | wc -w | tr -d ' ')
+
+          if [ "$PARENT_COUNT" -ge 2 ]; then
+            # Regular merge commit: second parent is the PR branch HEAD.
+            PR_HEAD_SHA=$(echo "$PARENTS" | awk '{print $2}')
+            PLAN_KEY="${{ env.TF_PLAN_PREFIX }}/tfplan-${PR_HEAD_SHA}.binary"
+
+            echo "Detected merge commit. PR head SHA: ${PR_HEAD_SHA}"
+
+            if aws s3 ls "s3://${{ env.TF_PLAN_BUCKET }}/${PLAN_KEY}" \
+                --region ${{ env.TF_PLAN_REGION }} > /dev/null 2>&1; then
+              aws s3 cp "s3://${{ env.TF_PLAN_BUCKET }}/${PLAN_KEY}" tfplan.binary \
+                --region ${{ env.TF_PLAN_REGION }}
+              echo "plan_file=tfplan.binary" >> "$GITHUB_OUTPUT"
+              echo "pr_head_sha=${PR_HEAD_SHA}" >> "$GITHUB_OUTPUT"
+              echo "Plan artifact downloaded successfully."
+            else
+              echo "plan_file=" >> "$GITHUB_OUTPUT"
+              echo "No plan artifact found for ${PR_HEAD_SHA}. Falling back to fresh apply."
+            fi
+          else
+            echo "plan_file=" >> "$GITHUB_OUTPUT"
+            echo "Single-parent commit (squash/rebase/direct push). Falling back to fresh apply."
+          fi
+
+      # - name: Terraform Apply (from plan artifact)
+      #   if: steps.resolve.outputs.plan_file != ''
+      #   run: |
+      #     echo "Applying plan artifact from PR head ${{ steps.resolve.outputs.pr_head_sha }}"
+      #     terraform apply -auto-approve ${{ steps.resolve.outputs.plan_file }}
+
+      # - name: Terraform Apply (fresh fallback)
+      #   if: steps.resolve.outputs.plan_file == ''
+      #   run: terraform apply -auto-approve
+
+      - name: Cleanup plan artifact from S3
+        if: always() && steps.resolve.outputs.plan_file != ''
+        run: |
+          aws s3 rm \
+            "s3://${{ env.TF_PLAN_BUCKET }}/${{ env.TF_PLAN_PREFIX }}/tfplan-${{ steps.resolve.outputs.pr_head_sha }}.binary" \
+            --region ${{ env.TF_PLAN_REGION }} || true
