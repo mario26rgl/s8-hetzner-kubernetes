@@ -52,6 +52,9 @@ jobs:
           scan-ref: ./terraform
           severity: CRITICAL,HIGH
           version: latest
+          format: 'template'
+          template: '@html.tpl'
+          output: 'trivy-report.html'
 
   plan:
     name: Terraform Plan
