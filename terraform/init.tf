@@ -503,3 +503,46 @@ resource "terraform_data" "cert_manager_issuers" {
 
   depends_on = [terraform_data.kustomization]
 }
+
+# Apply the ArgoCD app-of-apps manifest after ArgoCD CRDs are available (prevent race conditions)
+resource "terraform_data" "argocd_bootstrap_app" {
+  count = var.enable_argocd && var.argocd_github_repo_url != "" && var.argocd_apps_path != "" ? 1 : 0
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = local.first_control_plane_ip
+    port           = var.ssh_port
+
+    bastion_host        = local.ssh_bastion.bastion_host
+    bastion_port        = local.ssh_bastion.bastion_port
+    bastion_user        = local.ssh_bastion.bastion_user
+    bastion_private_key = local.ssh_bastion.bastion_private_key
+  }
+
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/argocd_bootstrap_app.yaml.tpl",
+      {
+        github_repo_url = var.argocd_github_repo_url
+        apps_path       = var.argocd_apps_path
+      }
+    )
+    destination = "/var/post_install/argocd_bootstrap_app.yaml"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "kubectl wait --for=condition=Established --timeout=300s crd/applications.argoproj.io",
+      "kubectl apply -f /var/post_install/argocd_bootstrap_app.yaml"
+    ]
+  }
+
+  triggers_replace = {
+    github_repo_url = var.argocd_github_repo_url
+    apps_path       = var.argocd_apps_path
+  }
+
+  depends_on = [terraform_data.kustomization]
+}

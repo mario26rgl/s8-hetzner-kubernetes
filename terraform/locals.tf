@@ -869,31 +869,6 @@ configs:
     application.resourceTrackingMethod: annotation
   params:
     server.insecure: "true"
-%{if var.argocd_github_repo_url != "" && var.argocd_apps_path != ""~}
-# Bootstrap the app-of-apps Application as part of the Helm release so that
-# ArgoCD begins reconciling kubernetes/apps as soon as it starts.
-extraObjects:
-  - apiVersion: argoproj.io/v1alpha1
-    kind: Application
-    metadata:
-      name: apps
-      namespace: argocd
-    spec:
-      project: default
-      source:
-        repoURL: ${var.argocd_github_repo_url}
-        targetRevision: HEAD
-        path: ${var.argocd_apps_path}
-      destination:
-        server: https://kubernetes.default.svc
-        namespace: argocd
-      syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
-        syncOptions:
-          - CreateNamespace=true
-%{endif~}
   EOT
 
   argocd_values = module.values_merger_argocd.values
