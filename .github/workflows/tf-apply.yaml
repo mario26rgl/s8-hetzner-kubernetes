@@ -36,6 +36,8 @@ jobs:
         working-directory: terraform
     env:
       TF_VAR_hcloud_token: ${{ secrets.HCLOUD_TOKEN }}
+      TF_VAR_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+      TF_VAR_argocd_github_token: ${{ secrets.ARGOCD_PAT }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
@@ -81,15 +83,15 @@ jobs:
             echo "Single-parent commit (squash/rebase/direct push). Falling back to fresh apply."
           fi
 
-      # - name: Terraform Apply (from plan artifact)
-      #   if: steps.resolve.outputs.plan_file != ''
-      #   run: |
-      #     echo "Applying plan artifact from PR head ${{ steps.resolve.outputs.pr_head_sha }}"
-      #     terraform apply -auto-approve ${{ steps.resolve.outputs.plan_file }}
+      - name: Terraform Apply (from plan artifact)
+        if: steps.resolve.outputs.plan_file != ''
+        run: |
+          echo "Applying plan artifact from PR head ${{ steps.resolve.outputs.pr_head_sha }}"
+          terraform apply ${{ steps.resolve.outputs.plan_file }}
 
-      # - name: Terraform Apply (fresh fallback)
-      #   if: steps.resolve.outputs.plan_file == ''
-      #   run: terraform apply -auto-approve
+      - name: Terraform Apply (fresh fallback)
+        if: steps.resolve.outputs.plan_file == ''
+        run: terraform apply -auto-approve -var-file="../config/PROD.tfvars"
 
       - name: Cleanup plan artifact from S3
         if: always() && steps.resolve.outputs.plan_file != ''

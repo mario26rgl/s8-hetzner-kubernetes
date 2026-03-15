@@ -254,6 +254,7 @@ resource "terraform_data" "kustomization" {
       local.cert_manager_values,
       local.hetzner_csi_values,
       local.hetzner_ccm_values,
+      var.enable_argocd ? local.argocd_values : "",
     ])
     # Redeploy when versions of addons need to be updated
     versions = join("\n", [
@@ -267,6 +268,7 @@ resource "terraform_data" "kustomization" {
       coalesce(var.traefik_version, "N/A"),
       coalesce(var.cert_manager_version, "N/A"),
       coalesce(var.sys_upgrade_controller_version, "N/A"),
+      coalesce(var.argocd_version, "N/A"),
     ])
     options = join("\n", [
       for option, value in local.kured_options : "${option}=${value}"
@@ -381,6 +383,21 @@ resource "terraform_data" "kustomization" {
     destination = "/var/post_install/kured.yaml"
   }
 
+  provisioner "file" {
+    content = var.enable_argocd ? templatefile(
+      "${path.module}/templates/argocd.yaml.tpl",
+      {
+        version         = var.argocd_version
+        values          = indent(4, local.argocd_values)
+        github_repo_url = var.argocd_github_repo_url
+        github_username = var.argocd_github_username
+        github_token    = var.argocd_github_token
+        ghcr_auth       = base64encode("${var.argocd_github_username}:${var.argocd_github_token}")
+      }
+    ) : ""
+    destination = "/var/post_install/argocd.yaml"
+  }
+
   # Deploy our post-installation kustomization
   provisioner "remote-exec" {
     inline = concat([
@@ -424,7 +441,7 @@ resource "terraform_data" "kustomization" {
         "sleep 7", # important as the system upgrade controller CRDs sometimes don't get ready right away, especially with Cilium.
         "kubectl -n system-upgrade apply -f /var/post_install/plans.yaml",
         # Wait for system namespace deployments to become available
-        "for ns in kube-system ${var.enable_cert_manager ? "cert-manager" : ""} ${local.ingress_controller_namespace} system-upgrade; do [ -n \"$ns\" ] && kubectl get ns $ns &>/dev/null && kubectl -n $ns wait deployment --all --for=condition=Available --timeout=300s || true; done",
+        "for ns in kube-system ${var.enable_cert_manager ? "cert-manager" : ""} ${var.enable_argocd ? "argocd" : ""} ${local.ingress_controller_namespace} system-upgrade; do [ -n \"$ns\" ] && kubectl get ns $ns &>/dev/null && kubectl -n $ns wait deployment --all --for=condition=Available --timeout=300s || true; done",
         # Wait for helm install jobs to complete (only in namespaces that have jobs)
         "for ns in kube-system; do [ -n \"$ns\" ] && kubectl get ns $ns &>/dev/null && kubectl -n $ns get job -o name 2>/dev/null | grep -q . && kubectl -n $ns wait job --all --for=condition=Complete --timeout=300s || true; done"
       ],
@@ -445,4 +462,44 @@ resource "terraform_data" "kustomization" {
     terraform_data.control_planes,
     terraform_data.kube_system_secrets
   ]
+}
+
+# Apply Let's Encrypt ClusterIssuers after cert-manager is fully available.
+# This is a separate step from the main kustomization because ClusterIssuer
+# is a cert-manager CRD that only exists once the Helm chart has been installed.
+resource "terraform_data" "cert_manager_issuers" {
+  count = var.enable_cert_manager && var.acme_email != "" ? 1 : 0
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = local.first_control_plane_ip
+    port           = var.ssh_port
+
+    bastion_host        = local.ssh_bastion.bastion_host
+    bastion_port        = local.ssh_bastion.bastion_port
+    bastion_user        = local.ssh_bastion.bastion_user
+    bastion_private_key = local.ssh_bastion.bastion_private_key
+  }
+
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/cert_manager_issuers.yaml.tpl",
+      { acme_email = var.acme_email }
+    )
+    destination = "/var/post_install/cert_manager_issuers.yaml"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "kubectl apply -f /var/post_install/cert_manager_issuers.yaml"
+    ]
+  }
+
+  triggers_replace = {
+    acme_email = var.acme_email
+  }
+
+  depends_on = [terraform_data.kustomization]
 }

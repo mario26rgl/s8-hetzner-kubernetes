@@ -57,6 +57,7 @@ locals {
       lookup(local.ingress_controller_install_resources, var.ingress_controller, []),
       lookup(local.cni_install_resources, var.cni_plugin, []),
       var.enable_cert_manager ? ["cert_manager.yaml"] : [],
+      var.enable_argocd ? ["argocd.yaml"] : [],
     ),
     patches = [
       {
@@ -843,6 +844,59 @@ config:
   EOT
 
   cert_manager_values = module.values_merger_cert_manager.values
+
+  argocd_values_default = <<-EOT
+server:
+  # Traefik Ingress handles TLS termination; ArgoCD listens on plain HTTP internally.
+  insecure: true
+%{if var.argocd_ingress_hostname != ""~}
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hostname: ${var.argocd_ingress_hostname}
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
+%{if var.enable_cert_manager && var.acme_email != ""~}
+      cert-manager.io/cluster-issuer: letsencrypt-${var.issuer_environment}
+%{endif~}
+    tls: true
+%{endif~}
+configs:
+  cm:
+    admin.enabled: "true"
+    # Use annotation tracking to avoid conflicts with Helm-managed resources.
+    application.resourceTrackingMethod: annotation
+  params:
+    server.insecure: "true"
+%{if var.argocd_github_repo_url != "" && var.argocd_apps_path != ""~}
+# Bootstrap the app-of-apps Application as part of the Helm release so that
+# ArgoCD begins reconciling kubernetes/apps as soon as it starts.
+extraObjects:
+  - apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      name: apps
+      namespace: argocd
+    spec:
+      project: default
+      source:
+        repoURL: ${var.argocd_github_repo_url}
+        targetRevision: HEAD
+        path: ${var.argocd_apps_path}
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: argocd
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+%{endif~}
+  EOT
+
+  argocd_values = module.values_merger_argocd.values
 
   kured_options = merge({
     "reboot-command" : "/usr/bin/systemctl reboot",
