@@ -19,6 +19,8 @@ argocd_ingress_hostname                  = "argocd.s8-hetzner.online"
 enable_cert_manager                      = true
 acme_email                               = "mario_constantin1234@proton.me"
 issuer_environment                       = "staging"
+argocd_github_repo_url                   = "https://github.com/mario26rgl/s8-hetzner-kubernetes"
+argocd_github_username                   = "mario26rgl"
 
 # MUST BE ODD NUMBER
 control_plane_nodepools = [
