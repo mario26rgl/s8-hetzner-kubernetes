@@ -53,13 +53,6 @@ jobs:
         with:
           terraform_version: latest
 
-      - name: Normalize SSH private key newlines
-        run: |
-          echo 'TF_VAR_ssh_private_key<<__EOF__' >> "$GITHUB_ENV"
-          printf '%s' "$TF_VAR_ssh_private_key" | sed 's/\\n/\n/g' >> "$GITHUB_ENV"
-          echo '' >> "$GITHUB_ENV"
-          echo '__EOF__' >> "$GITHUB_ENV"
-
       - name: Terraform Init
         run: terraform init
 
