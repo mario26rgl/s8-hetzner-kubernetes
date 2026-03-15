@@ -36,7 +36,6 @@ jobs:
         working-directory: terraform
     env:
       TF_VAR_hcloud_token: ${{ secrets.HCLOUD_TOKEN }}
-      TF_VAR_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
       TF_VAR_argocd_github_token: ${{ secrets.ARGOCD_PAT }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -45,6 +44,10 @@ jobs:
         with:
           # Fetch full history so git log can inspect merge commit parents.
           fetch-depth: 0
+      
+      - uses: webfactory/ssh-agent@v0.10.0
+        with:
+            ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }} # Configure SSH Agent identity
 
       - uses: hashicorp/setup-terraform@v3
         with:
