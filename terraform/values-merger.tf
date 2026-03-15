@@ -32,3 +32,10 @@ module "values_merger_cert_manager" {
   override_values = var.cert_manager_values
   merge_values    = var.cert_manager_merge_values
 }
+
+module "values_merger_argocd" {
+  source          = "./modules/values_merger"
+  default_values  = local.argocd_values_default
+  override_values = var.argocd_values
+  merge_values    = var.argocd_merge_values
+}

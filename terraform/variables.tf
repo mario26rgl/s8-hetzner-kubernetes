@@ -923,25 +923,6 @@ variable "postinstall_exec" {
   description = "Additional to execute after the install calls, for example restoring a backup."
 }
 
-
-variable "extra_kustomize_deployment_commands" {
-  type        = string
-  default     = ""
-  description = "Commands to be executed after the `kubectl apply -k <dir>` step."
-}
-
-variable "extra_kustomize_parameters" {
-  type        = any
-  default     = {}
-  description = "All values will be passed to the `kustomization.tmp.yml` template."
-}
-
-variable "extra_kustomize_folder" {
-  type        = string
-  default     = "extra-manifests"
-  description = "Folder from where to upload extra manifests"
-}
-
 variable "create_kubeconfig" {
   type        = bool
   default     = true
@@ -1131,5 +1112,89 @@ variable "control_plane_endpoint" {
   validation {
     condition     = var.control_plane_endpoint == null || can(regex("^https?://(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?|(?:[0-9]{1,3}\\.){3}[0-9]{1,3}|\\[[0-9a-fA-F:]+\\])(?::[0-9]{1,5})?(?:/.*)?$", var.control_plane_endpoint))
     error_message = "The control_plane_endpoint must be null or a valid URL (e.g., https://my-api.example.com:6443)."
+  }
+}
+
+### ArgoCD Configuration
+variable "enable_argocd" {
+  description = "ArgoCD deployment toggle"
+  type        = bool
+  default     = false
+}
+
+variable "argocd_version" {
+  type        = string
+  default     = "*"
+  description = "Version of the ArgoCD Helm chart. See https://github.com/argoproj/argo-helm/releases for the available versions."
+}
+
+variable "argocd_ingress_hostname" {
+  type        = string
+  default     = ""
+  description = "Hostname to expose the ArgoCD UI via the Traefik ingress (e.g. argocd.example.com). Leave empty to skip ingress creation."
+}
+
+variable "argocd_github_repo_url" {
+  type        = string
+  default     = ""
+  description = "HTTPS URL of the GitHub repository ArgoCD should monitor for app manifests (e.g. https://github.com/org/repo)."
+}
+
+variable "argocd_github_username" {
+  type        = string
+  default     = ""
+  description = "GitHub username used for repository authentication and as the GHCR image pull secret identity."
+}
+
+variable "argocd_github_token" {
+  type        = string
+  default     = ""
+  sensitive   = true
+  description = "GitHub Personal Access Token used by ArgoCD to access the private repository and pull images from GHCR."
+}
+
+variable "argocd_apps_path" {
+  type        = string
+  default     = "kubernetes/apps"
+  description = "Path inside the repository that contains the app-of-apps manifests ArgoCD should track."
+}
+
+variable "argocd_values" {
+  type        = string
+  default     = ""
+  description = "Full override for the ArgoCD Helm chart values. When set, the default values are replaced entirely."
+}
+
+variable "argocd_merge_values" {
+  type        = string
+  default     = ""
+  description = "Additional ArgoCD Helm chart values to deep-merge on top of the defaults."
+}
+
+### DNS Configuration
+variable "dns_zone" {
+  type        = string
+  default     = "s8-hetzner.online"
+  description = "The DNS zone managed in Hetzner DNS (e.g. s8-hetzner.online). A wildcard A record is created pointing to the Traefik LB IP."
+}
+
+### TLS / Let's Encrypt
+variable "acme_email" {
+  type        = string
+  default     = ""
+  description = "Email address registered with Let's Encrypt for certificate expiry notifications. Required when enable_cert_manager = true."
+  validation {
+    condition     = (var.acme_email == "" && var.enable_cert_manager == false) || can(regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", var.acme_email))
+    error_message = "The acme_email must be a valid email address or an empty string if cert manager is disabled."
+  }
+}
+
+variable "issuer_environment" {
+  type        = string
+  default     = "prod"
+  description = "The ACME issuer environment for cert manager. Supported values are 'prod' and 'staging'. The staging environment should be used for testing to avoid hitting Let's Encrypt rate limits."
+  validation {
+    condition     = contains(["prod", "staging"], var.issuer_environment)
+    error_message = "The issuer_environment must be either 'prod' or 'staging'."
   }
 }
