@@ -1,0 +1,4 @@
+apiVersion: v2
+name: vcluster
+description: Helm chart for deploying the vcluster component
+version: 0.0.1

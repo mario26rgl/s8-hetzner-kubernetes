@@ -106,10 +106,10 @@ autoscaler_nodepools = [
     server_type = "cx23",
     location    = "hel1",
     min_nodes   = 0
-    max_nodes   = 1
-    labels = {
-      "k8s.io/provisioning-strategy" = "cluster-autoscaler"
-    }
+    max_nodes   = 3
+    # labels = { # Cannot schedule with these labels
+    #   "cluster-autoscaler.k8s.io/provisioning-strategy" = "cluster-autoscaler"
+    # }
     count     = 0
     zram_size = "1G"
   }
