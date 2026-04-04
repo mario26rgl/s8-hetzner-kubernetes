@@ -1,0 +1,4 @@
+vcluster-config:
+  name: vcluster-a
+  namespace: vcluster-a
+  chart-version: "0.33.1"

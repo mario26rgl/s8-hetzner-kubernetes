@@ -1,0 +1,130 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  namespace: argocd
+  name: vcluster-a
+spec:
+  project: default
+  source:
+    repoURL: https://charts.loft.sh
+    targetRevision: {{ .Values.vcluster-config.chart-version }}
+    chart: vcluster
+    helm:
+      releaseName: {{ .Values.vcluster-config.name }}
+      # https://github.com/loft-sh/vcluster/blob/v0.33.1/chart/values.yaml
+      values: |
+        sync:
+          fromHost:
+            configMaps:
+              enabled: false
+            csiDrivers:
+              enabled: false
+            csiNodes:
+              enabled: false
+            csiStorageCapacities:
+              enabled: false
+            storageClasses:
+              enabled: false
+            ingressClasses:
+              enabled: false
+            runtimeClasses:
+              enabled: false
+            priorityClasses:
+              enabled: false
+            nodes:
+              enabled: false
+            secrets:
+              enabled: false
+          toHost:
+            services:
+              enabled: true
+            endpoints:
+              enabled: true
+            endpointSlices:
+              enabled: true
+            persistentVolumeClaims:
+              enabled: true
+            configMaps:
+              enabled: true
+              all: false
+            secrets:
+              enabled: true
+              all: false
+            pods:
+              enabled: true
+              runtimeClassName: ""
+            ingresses:
+              enabled: false
+            networkPolicies:
+              enabled: true
+            serviceAccounts:
+              enabled: true
+            persistentVolumes:
+              enabled: false
+            namespaces:
+              enabled: false
+
+        controlPlane:
+          proxy:
+            extraSANs:
+            - "vcluster-a.vcluster-a.svc.cluster.local"
+            - "vcluster-a.vcluster-a.svc"
+            - "vcluster-a.vcluster-a"
+          backingStore:
+            etcd:
+              deploy:
+                enabled: true
+                statefulSet:
+                  highAvailability:
+                    replicas: 1
+                  scheduling:
+                    nodeSelector: {}
+                    affinity: {}
+                    tolerations: []
+                    topologySpreadConstraints: []
+                  persistence:
+                    volumeClaim:
+                      enabled: true
+                      size: 10Gi
+                      storageClass: hcloud-volumes
+          serviceMonitor:
+            enabled: false
+            labels: {}
+            annotations: {}
+
+        deploy:
+          cni:
+            flannel:
+              enabled: false
+          kubeProxy:
+            enabled: false
+
+        integrations:
+          metricsServer:
+            enabled: true
+            nodes: false
+            pods: true
+
+        policies:
+          resourceQuota:
+            enabled: true
+          networkPolicy:
+            enabled: false
+
+        exportKubeConfig:
+          context: {{ .Values.vcluster-config.name }}
+          server: https://{{ .Values.vcluster-config.name }}.{{ .Values.vcluster-config.namespace }}.svc.cluster.local
+
+        telemetry:
+          enabled: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.vcluster-config.namespace }}
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: true

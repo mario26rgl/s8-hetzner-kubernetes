@@ -1,0 +1,4 @@
+apiVersion: v2
+name: backend
+description: Helm chart for deploying the backend component of the example-webapp
+version: 0.0.1

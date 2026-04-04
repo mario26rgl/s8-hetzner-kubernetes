@@ -32,9 +32,8 @@ ssh_authorized_keys:
 growpart:
     devices: ["/var"]
 
-# Make sure the hostname is set correctly
-hostname: ${hostname}
-preserve_hostname: true
+# Keep provider-assigned hostname so autoscaled nodes remain unique.
+preserve_hostname: false
 
 runcmd:
 
@@ -154,6 +153,12 @@ ${cloudinit_runcmd_common}
   systemctl daemon-reload
   systemctl enable --now zram.service
 %{endif~}
+
+# Ensure each autoscaled node registers with a unique k3s node-name.
+- |
+  if ! grep -q '^node-name:' /tmp/config.yaml; then
+    echo "node-name: $(hostname -s)" >> /tmp/config.yaml
+  fi
 
 # Start the install-k3s-agent service
 - ['/bin/bash', '/var/pre_install/install-k3s-agent.sh']
