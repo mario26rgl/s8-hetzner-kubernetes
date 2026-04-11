@@ -7,10 +7,10 @@ spec:
   project: default
   source:
     repoURL: https://charts.loft.sh
-    targetRevision: {{ .Values.vcluster-config.chart-version }}
+    targetRevision: {{ .Values.vcluster_config.chart_version }}
     chart: vcluster
     helm:
-      releaseName: {{ .Values.vcluster-config.name }}
+      releaseName: {{ .Values.vcluster_config.name }}
       # https://github.com/loft-sh/vcluster/blob/v0.33.1/chart/values.yaml
       values: |
         sync:
@@ -112,14 +112,14 @@ spec:
             enabled: false
 
         exportKubeConfig:
-          context: {{ .Values.vcluster-config.name }}
-          server: https://{{ .Values.vcluster-config.name }}.{{ .Values.vcluster-config.namespace }}.svc.cluster.local
+          context: {{ .Values.vcluster_config.name }}
+          server: https://{{ .Values.vcluster_config.name }}.{{ .Values.vcluster_config.namespace }}.svc.cluster.local
 
         telemetry:
           enabled: true
   destination:
     server: https://kubernetes.default.svc
-    namespace: {{ .Values.vcluster-config.namespace }}
+    namespace: {{ .Values.vcluster_config.namespace }}
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
