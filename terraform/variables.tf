@@ -360,6 +360,20 @@ variable "cluster_autoscaler_config" {
   }
 }
 
+variable "autoscaler_subnet_index" {
+  description = "Optional agent subnet index for autoscaled nodes. If null, defaults to the first agent subnet (or control-plane subnet if no agent subnet exists)."
+  type        = number
+  default     = null
+
+  validation {
+    condition = var.autoscaler_subnet_index == null || (
+      var.autoscaler_subnet_index >= 0 &&
+      var.autoscaler_subnet_index < length(var.agent_nodepools)
+    )
+    error_message = "autoscaler_subnet_index must be null or a valid agent nodepool index."
+  }
+}
+
 variable "autoscaler_nodepools" {
   description = "Cluster autoscaler nodepools."
   type = list(object({

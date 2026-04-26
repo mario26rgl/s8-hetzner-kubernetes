@@ -21,6 +21,17 @@ acme_email                               = "mario_constantin1234@proton.me"
 issuer_environment                       = "staging"
 argocd_github_repo_url                   = "https://github.com/mario26rgl/s8-hetzner-kubernetes"
 argocd_github_username                   = "mario26rgl"
+cilium_version                           = "1.19.2"
+
+extra_firewall_rules = [
+  {
+    description     = "Allow Outbound Cilium Cluster Mesh Communication",
+    direction       = "out"
+    protocol        = "tcp"
+    port            = "2379"
+    destination_ips = ["0.0.0.0/0", "::/0"]
+  }
+]
 
 # MUST BE ODD NUMBER
 control_plane_nodepools = [
@@ -114,6 +125,9 @@ autoscaler_nodepools = [
     zram_size = "1G"
   }
 ]
+
+# Force autoscaled nodes into a specific agent subnet (index in agent_nodepools).
+autoscaler_subnet_index = 0
 
 nat_router = {
   server_type = "cx23"

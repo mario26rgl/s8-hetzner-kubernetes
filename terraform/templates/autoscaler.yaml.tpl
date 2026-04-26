@@ -189,7 +189,7 @@ spec:
           - name: HCLOUD_IMAGE
             value: '${snapshot_id}'
           - name: HCLOUD_NETWORK
-            value: '${ipv4_network_id}'
+            value: '${ipv4_subnet_id}'
           - name: HCLOUD_FIREWALL
             value: '${firewall_id}'
           - name: HCLOUD_PUBLIC_IPV4
