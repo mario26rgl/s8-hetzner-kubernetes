@@ -36,7 +36,7 @@ spec:
               namespace: "{{ .namespace }}"
               chart_version: '{{ default "0.33.1" .chartVersion }}'
               overrides: |
-{{ .vclusterOverrides | nindent 16 }}
+              {{ .vclusterOverrides | nindent 2 }}
             argocd:
               namespace: "argocd"
               create_project: true
