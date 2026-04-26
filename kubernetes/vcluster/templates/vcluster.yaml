@@ -12,6 +12,14 @@ metadata:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
   project: default
+  ignoreDifferences:
+    - group: apps
+      kind: StatefulSet
+      name: {{ printf "%s-etcd" $vclusterName }}
+      jqPathExpressions:
+        - .spec.volumeClaimTemplates[].apiVersion
+        - .spec.volumeClaimTemplates[].kind
+        # - .spec.volumeClaimTemplates[].metadata.name
   source:
     repoURL: https://charts.loft.sh
     targetRevision: {{ .Values.vcluster_config.chart_version }}
