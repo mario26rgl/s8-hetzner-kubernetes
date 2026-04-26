@@ -7,6 +7,9 @@ tenants:
     chartVersion: "0.33.1"
     sourceRepos:
       - https://github.com/mario26rgl/s8-hetzner-kubernetes.git
+    vclusterOverrides: |
+      telemetry:
+        enabled: false
 
 
 # Example entry:
