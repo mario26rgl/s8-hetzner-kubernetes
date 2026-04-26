@@ -1,0 +1,4 @@
+apiVersion: v2
+name: argocd-tenant-access
+description: Helm chart for tenant-scoped Argo CD local user and repository credentials
+version: 0.0.1

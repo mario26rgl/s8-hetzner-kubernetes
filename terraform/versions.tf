@@ -29,6 +29,10 @@ terraform {
       source  = "hashicorp/random"
       version = ">= 3.8.1"
     }
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 5.74.0, < 6.0.0"
+    }
   }
   backend "s3" {
     bucket       = "s8-hetzner-k8s-tfstate"
@@ -40,6 +44,10 @@ terraform {
 
 provider "hcloud" {
   token = var.hcloud_token
+}
+
+provider "aws" {
+  region = "eu-central-1"
 }
 
 # Prevent provider picking up `GITHUB_TOKEN` env var and trying to authenticate

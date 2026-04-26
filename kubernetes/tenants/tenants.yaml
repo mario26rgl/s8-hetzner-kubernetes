@@ -10,6 +10,24 @@ tenants:
     vclusterOverrides: |
       telemetry:
         enabled: false
+    argocdUser:
+      username: tenant-one-admin
+      roleName: tenant-admin
+      passwordHashSecretRef:
+        key: /argocd/tenants/tenant-one/user
+        property: passwordHash
+      passwordMtimeSecretRef:
+        key: /argocd/tenants/tenant-one/user
+        property: passwordMtime
+    repoCredentials:
+      enabled: true
+      authType: basic
+      name: tenant-one-repo
+      secretRef:
+        key: /argocd/tenants/tenant-one/repo
+        urlProperty: url
+        usernameProperty: username
+        passwordProperty: password
 
 
 # Example entry:
@@ -23,3 +41,21 @@ tenants:
 #     vclusterOverrides: |
 #       telemetry:
 #         enabled: false
+#     argocdUser:
+#       username: tenant-acme-admin
+#       roleName: tenant-admin
+#       passwordHashSecretRef:
+#         key: /argocd/tenants/tenant-acme/user
+#         property: passwordHash
+#       passwordMtimeSecretRef:
+#         key: /argocd/tenants/tenant-acme/user
+#         property: passwordMtime
+#     repoCredentials:
+#       enabled: true
+#       authType: basic
+#       name: tenant-acme-repo
+#       secretRef:
+#         key: /argocd/tenants/tenant-acme/repo
+#         urlProperty: url
+#         usernameProperty: username
+#         passwordProperty: password

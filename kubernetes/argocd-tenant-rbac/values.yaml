@@ -1,0 +1,15 @@
+argocdNamespace: argocd
+
+tenants: []
+
+aws:
+  createSecretStore: false
+  secretStore:
+    name: aws-secretsmanager
+    kind: SecretStore
+  secretStoreSpec:
+    region: eu-central-1
+    authSecret:
+      name: eso-aws-credentials
+      accessKeyIDKey: access-key-id
+      secretAccessKeyKey: secret-access-key
