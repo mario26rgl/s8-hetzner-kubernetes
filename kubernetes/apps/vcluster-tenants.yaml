@@ -35,23 +35,23 @@ spec:
               name: "{{ .name }}"
               namespace: "{{ .namespace }}"
               chart_version: '{{ default "0.33.1" .chartVersion }}'
-{{- if .vclusterOverrides }}
+              {{- if .vclusterOverrides }}
               overrides: |
 {{ .vclusterOverrides | nindent 16 }}
-{{- else }}
+              {{- else }}
               overrides: ""
-{{- end }}
+              {{- end }}
             argocd:
               namespace: "argocd"
               create_project: true
               project: '{{ default (printf "tenant-%s" .name) .project }}'
               host_cluster_server: "https://kubernetes.default.svc"
               source_repos:
-{{- if .sourceRepos }}
+              {{- if .sourceRepos }}
 {{ toYaml .sourceRepos | nindent 16 }}
-{{- else }}
+              {{- else }}
                 - "https://github.com/mario26rgl/s8-hetzner-kubernetes.git"
-{{- end }}
+              {{- end }}
       destination:
         server: https://kubernetes.default.svc
         namespace: argocd
