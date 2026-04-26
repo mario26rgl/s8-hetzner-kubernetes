@@ -43,11 +43,11 @@ spec:
               project: '{{ default (printf "tenant-%s" .name) .project }}'
               host_cluster_server: "https://kubernetes.default.svc"
               source_repos:
-{{- if .sourceRepos }}
+              {{- if .sourceRepos }}
               {{ toYaml .sourceRepos | nindent 2 }}
-{{- else }}
+              {{- else }}
                 - "https://github.com/mario26rgl/s8-hetzner-kubernetes.git"
-{{- end }}
+              {{- end }}
       destination:
         server: https://kubernetes.default.svc
         namespace: argocd
