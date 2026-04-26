@@ -1,0 +1,22 @@
+# Single source of truth for tenant onboarding.
+# Add one object to the tenants array in a PR to bootstrap a new tenant vcluster stack.
+tenants:
+  - name: tenant-one
+    namespace: tenant-one
+    project: tenant-one
+    chartVersion: "0.33.1"
+    sourceRepos:
+      - https://github.com/mario26rgl/s8-hetzner-kubernetes.git
+
+
+# Example entry:
+# tenants:
+#   - name: tenant-acme
+#     namespace: tenant-acme
+#     project: tenant-acme
+#     chartVersion: "0.33.1"
+#     sourceRepos:
+#       - https://github.com/mario26rgl/s8-hetzner-kubernetes.git
+#     vclusterOverrides: |
+#       telemetry:
+#         enabled: false

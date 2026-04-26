@@ -1,0 +1,38 @@
+{{- if .Values.argocd.create_project }}
+{{- $argocdNamespace := default "argocd" .Values.argocd.namespace -}}
+{{- $projectName := default (printf "tenant-%s" .Values.vcluster_config.name) .Values.argocd.project -}}
+{{- $hostClusterServer := default "https://kubernetes.default.svc" .Values.argocd.host_cluster_server -}}
+{{- $vclusterServer := printf "https://%s.%s.svc.cluster.local" .Values.vcluster_config.name .Values.vcluster_config.namespace -}}
+{{- $roleName := default "tenant-admin" .Values.argocd.role_name -}}
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: "{{ $projectName }}"
+  namespace: "{{ $argocdNamespace }}"
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  description: "Tenant project for {{ .Values.vcluster_config.name }}"
+  sourceRepos:
+{{- range (default (list "*") .Values.argocd.source_repos) }}
+    - "{{ . }}"
+{{- end }}
+  destinations:
+    # - server: "{{ $hostClusterServer }}"
+    #   namespace: "{{ .Values.vcluster_config.namespace }}"
+    - server: "{{ $vclusterServer }}"
+      namespace: "*"
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
+  roles:
+    - name: "{{ $roleName }}"
+      description: "Tenant scoped operational role"
+      policies:
+        - "p, proj:{{ $projectName }}:{{ $roleName }}, applications, *, {{ $projectName }}/*, allow"
+        - "p, proj:{{ $projectName }}:{{ $roleName }}, logs, get, {{ $projectName }}/*, allow"
+      groups: []
+{{- end }}

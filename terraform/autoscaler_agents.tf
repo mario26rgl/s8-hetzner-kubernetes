@@ -1,6 +1,15 @@
 locals {
   cluster_prefix             = "${var.cluster_name}-"
   first_nodepool_snapshot_id = length(var.autoscaler_nodepools) == 0 ? "" : data.hcloud_image.microos_x86_snapshot.id
+  autoscaler_subnet_id = (
+    var.autoscaler_subnet_index == null
+    ? (
+      length(hcloud_network_subnet.agent) > 0
+      ? hcloud_network_subnet.agent[0].id
+      : hcloud_network_subnet.control_plane[0].id
+    )
+    : hcloud_network_subnet.agent[var.autoscaler_subnet_index].id
+  )
 
   cluster_config = {
     imagesForArch : {
@@ -30,7 +39,7 @@ locals {
       cluster_autoscaler_stderr_threshold        = var.cluster_autoscaler_config.stderr_threshold
       cluster_autoscaler_server_creation_timeout = tostring(var.cluster_autoscaler_config.timeout_minutes)
       ssh_key                                    = local.hcloud_ssh_key_id
-      ipv4_network_id                            = hcloud_network.k3s.id
+      ipv4_subnet_id                             = local.autoscaler_subnet_id
       snapshot_id                                = local.first_nodepool_snapshot_id
       cluster_config                             = base64encode(jsonencode(local.cluster_config))
       firewall_id                                = hcloud_firewall.k3s.id

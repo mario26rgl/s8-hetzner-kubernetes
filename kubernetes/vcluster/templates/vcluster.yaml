@@ -1,16 +1,23 @@
+{{- $vclusterName := .Values.vcluster_config.name -}}
+{{- $vclusterNamespace := .Values.vcluster_config.namespace -}}
+{{- $argocdProject := default "default" .Values.argocd.project -}}
+{{- $hostClusterServer := default "https://kubernetes.default.svc" .Values.argocd.host_cluster_server -}}
+{{- $vclusterServer := printf "https://%s.%s.svc.cluster.local" $vclusterName $vclusterNamespace -}}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  namespace: argocd
-  name: vcluster-a
+  namespace: {{ default "argocd" .Values.argocd.namespace }}
+  name: {{ $vclusterName }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 spec:
-  project: default
+  project: {{ $argocdProject }}
   source:
     repoURL: https://charts.loft.sh
     targetRevision: {{ .Values.vcluster_config.chart_version }}
     chart: vcluster
     helm:
-      releaseName: {{ .Values.vcluster_config.name }}
+      releaseName: {{ $vclusterName }}
       # https://github.com/loft-sh/vcluster/blob/v0.33.1/chart/values.yaml
       values: |
         sync:
@@ -67,9 +74,9 @@ spec:
         controlPlane:
           proxy:
             extraSANs:
-            - "vcluster-a.vcluster-a.svc.cluster.local"
-            - "vcluster-a.vcluster-a.svc"
-            - "vcluster-a.vcluster-a"
+            - "{{ $vclusterName }}.{{ $vclusterNamespace }}.svc.cluster.local"
+            - "{{ $vclusterName }}.{{ $vclusterNamespace }}.svc"
+            - "{{ $vclusterName }}.{{ $vclusterNamespace }}"
           backingStore:
             etcd:
               deploy:
@@ -112,14 +119,17 @@ spec:
             enabled: false
 
         exportKubeConfig:
-          context: {{ .Values.vcluster_config.name }}
-          server: https://{{ .Values.vcluster_config.name }}.{{ .Values.vcluster_config.namespace }}.svc.cluster.local
+          context: {{ $vclusterName }}
+          server: {{ $vclusterServer }}
 
         telemetry:
           enabled: true
+{{- with .Values.vcluster_config.overrides }}
+{{ . | nindent 8 }}
+{{- end }}
   destination:
-    server: https://kubernetes.default.svc
-    namespace: {{ .Values.vcluster_config.namespace }}
+    server: {{ $hostClusterServer }}
+    namespace: {{ $vclusterNamespace }}
   syncPolicy:
     syncOptions:
       - CreateNamespace=true

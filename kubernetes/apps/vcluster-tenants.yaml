@@ -1,0 +1,66 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: vcluster-tenants
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=default
+  generators:
+    - matrix:
+        generators:
+          - git:
+              repoURL: https://github.com/mario26rgl/s8-hetzner-kubernetes.git
+              revision: main
+              files:
+                - path: kubernetes/tenants/tenants.yaml
+          - list:
+              elementsYaml: "{{ .tenants | toJson }}"
+  template:
+    metadata:
+      name: "tenant-{{ .name }}-bootstrap"
+      namespace: argocd
+      labels:
+        tenant: "{{ .name }}"
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/mario26rgl/s8-hetzner-kubernetes.git
+        targetRevision: main
+        path: kubernetes/vcluster
+        helm:
+          values: |
+            vcluster_config:
+              name: "{{ .name }}"
+              namespace: "{{ .namespace }}"
+              chart_version: '{{ default "0.33.1" .chartVersion }}'
+              overrides: |
+{{ default "" .vclusterOverrides | nindent 16 }}
+            argocd:
+              namespace: "argocd"
+              create_project: true
+              project: '{{ default (printf "tenant-%s" .name) .project }}'
+              host_cluster_server: "https://kubernetes.default.svc"
+              source_repos:
+{{- if .sourceRepos }}
+{{ toYaml .sourceRepos | nindent 16 }}
+{{- else }}
+                - "https://github.com/mario26rgl/s8-hetzner-kubernetes.git"
+{{- end }}
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: argocd
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=false
+          - ServerSideApply=true
+        retry:
+          limit: -1
+          backoff:
+            duration: "5s"
+            factor: 2
+            maxDuration: "3m"
