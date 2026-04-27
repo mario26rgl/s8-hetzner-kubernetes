@@ -1,0 +1,95 @@
+sync:
+  fromHost:
+    configMaps:
+      enabled: false
+    csiDrivers:
+      enabled: false
+    csiNodes:
+      enabled: false
+    csiStorageCapacities:
+      enabled: false
+    storageClasses:
+      enabled: false
+    ingressClasses:
+      enabled: false
+    runtimeClasses:
+      enabled: false
+    priorityClasses:
+      enabled: false
+    nodes:
+      enabled: false
+    secrets:
+      enabled: false
+  toHost:
+    services:
+      enabled: true
+    endpoints:
+      enabled: true
+    endpointSlices:
+      enabled: true
+    persistentVolumeClaims:
+      enabled: true
+    configMaps:
+      enabled: true
+      all: false
+    secrets:
+      enabled: true
+      all: false
+    pods:
+      enabled: true
+      runtimeClassName: ""
+    ingresses:
+      enabled: false
+    networkPolicies:
+      enabled: true
+    serviceAccounts:
+      enabled: true
+    persistentVolumes:
+      enabled: false
+    namespaces:
+      enabled: false
+
+controlPlane:
+  backingStore:
+    etcd:
+      deploy:
+        enabled: true
+        statefulSet:
+          highAvailability:
+            replicas: 1
+          scheduling:
+            nodeSelector: {}
+            affinity: {}
+            tolerations: []
+            topologySpreadConstraints: []
+          persistence:
+            volumeClaim:
+              enabled: true
+              size: 10Gi
+              storageClass: hcloud-volumes
+  serviceMonitor:
+    enabled: false
+    labels: {}
+    annotations: {}
+
+deploy:
+  cni:
+    flannel:
+      enabled: false
+  kubeProxy:
+    enabled: false
+
+integrations:
+  metricsServer:
+    enabled: true
+    nodes: false
+    pods: true
+
+policies:
+  resourceQuota:
+    enabled: true
+  networkPolicy:
+    enabled: false
+
+telemetry:
+  enabled: true

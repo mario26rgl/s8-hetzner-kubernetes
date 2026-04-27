@@ -9,7 +9,18 @@ tenants:
       - https://github.com/mario26rgl/s8-hetzner-kubernetes.git
     vclusterOverrides: |
       controlPlane:
+        backingStore:
+          etcd:
+            deploy:
+              statefulSet:
+                persistence:
+                  volumeClaim:
+                    size: 1Gi
+                    storageClass: local-path
         statefulSet:
+          persistence:
+            volumeClaim:
+              storageClass: local-path
           scheduling:
             nodeSelector:
               topology.s8.io/location: aws-external
@@ -17,6 +28,10 @@ tenants:
               - key: topology.s8.io/location
                 operator: Equal
                 value: aws-external
+                effect: NoSchedule
+              - key: node.cloudprovider.kubernetes.io/uninitialized
+                operator: Equal
+                value: 'true'
                 effect: NoSchedule
         coredns:
           deployment:
@@ -27,14 +42,17 @@ tenants:
                 operator: Equal
                 value: aws-external
                 effect: NoSchedule
+              - key: node.cloudprovider.kubernetes.io/uninitialized
+                operator: Equal
+                value: 'true'
+                effect: NoSchedule
       sync:
         toHost:
           pods:
             enforceTolerations:
-              - key: topology.s8.io/location
-                operator: Equal
-                value: aws-external
-                effect: NoSchedule
+              - "topology.s8.io/location=aws-external:NoSchedule"
+              - "node.cloudprovider.kubernetes.io/uninitialized=true:NoSchedule"
+
     argocdUser:
       username: tenant-one-admin
       roleName: tenant-admin

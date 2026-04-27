@@ -23,6 +23,7 @@ argocd_github_repo_url                   = "https://github.com/mario26rgl/s8-het
 argocd_github_username                   = "mario26rgl"
 cilium_version                           = "1.19.2"
 enable_poc_hybrid_aws                    = true
+enable_local_storage = true
 
 extra_firewall_rules = [
   {

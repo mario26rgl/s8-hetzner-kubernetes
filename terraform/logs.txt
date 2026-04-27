@@ -1,0 +1,73 @@
+time="2026-04-28T16:32:43Z" level=info msg="ArgoCD Application Controller is starting" built="2026-04-21T17:19:47Z" commit=7ae7d2cc723f5408b080a31263e705198af08613 namespace=argocd version=v3.3.8
+time="2026-04-28T16:32:43Z" level=info msg="Loading Redis credentials from environment variables"
+time="2026-04-28T16:32:43Z" level=info msg="Processing all cluster shards"
+time="2026-04-28T16:32:43Z" level=info msg="Processing all cluster shards"
+time="2026-04-28T16:32:43Z" level=info msg="appResyncPeriod=2m0s, appHardResyncPeriod=0s, appResyncJitter=1m0s"
+time="2026-04-28T16:32:43Z" level=info msg="Starting configmap/secret informers"
+time="2026-04-28T16:32:43Z" level=info msg="Configmap/secret informer synced"
+time="2026-04-28T16:32:43Z" level=info msg="Cluster cache informer synced"
+time="2026-04-28T16:32:43Z" level=warning msg="The cluster https://tenant-one.tenant-one has no assigned shard."
+time="2026-04-28T16:32:43Z" level=warning msg="The cluster https://kubernetes.default.svc has no assigned shard."
+time="2026-04-28T16:32:43Z" level=info msg="Cluster https://tenant-one.tenant-one has been assigned to shard 0"
+time="2026-04-28T16:32:43Z" level=info msg="Cluster https://kubernetes.default.svc has been assigned to shard 0"
+time="2026-04-28T16:32:43Z" level=info msg="Ignore status for all objects"
+time="2026-04-28T16:32:43Z" level=info msg="Using diffing customizations to ignore resource updates"
+time="2026-04-28T16:32:43Z" level=info msg="Ignore status for all objects"
+time="2026-04-28T16:32:43Z" level=info msg="Starting secretInformer forcluster"
+time="2026-04-28T16:32:43Z" level=info msg="0xc00053a930 subscribed to settings updates"
+time="2026-04-28T16:32:43Z" level=info msg="Start syncing cluster" server="https://kubernetes.default.svc"
+time="2026-04-28T16:32:43Z" level=info msg="Start syncing cluster" server="https://tenant-one.tenant-one"
+time="2026-04-28T16:32:43Z" level=info msg="Resuming in-progress operation. phase: Running, message: " app-namespace=argocd application=tenant-tenant-one-bootstrap project=default
+time="2026-04-28T16:32:43Z" level=info msg="Ignore status for all objects"
+time="2026-04-28T16:32:43Z" level=info msg="Comparing app state (cluster: https://kubernetes.default.svc, namespace: argocd)" app-namespace=argocd application=tenant-tenant-one-bootstrap project=default
+panic: assignment to entry in nil map
+
+goroutine 315 [running]:
+k8s.io/kubectl/pkg/util/resource.maxResourceList(0x0, 0xc004f89b78?)
+	/go/pkg/mod/k8s.io/kubectl@v0.34.0/pkg/util/resource/resource.go:179 +0x27a
+k8s.io/kubectl/pkg/util/resource.max(0x8?, {0xc004f89be8, 0x2, 0x0?})
+	/go/pkg/mod/k8s.io/kubectl@v0.34.0/pkg/util/resource/resource.go:157 +0x5e
+k8s.io/kubectl/pkg/util/resource.determineContainerReqs(0x49060e0?, 0xc004f8a7d0?, 0xc004d1a2b0?)
+	/go/pkg/mod/k8s.io/kubectl@v0.34.0/pkg/util/resource/resource.go:149 +0x175
+k8s.io/kubectl/pkg/util/resource.podRequests(0xc00453b208)
+	/go/pkg/mod/k8s.io/kubectl@v0.34.0/pkg/util/resource/resource.go:57 +0x33a
+k8s.io/kubectl/pkg/util/resource.PodRequestsAndLimits(0xc00453b208)
+	/go/pkg/mod/k8s.io/kubectl@v0.34.0/pkg/util/resource/resource.go:36 +0x18
+github.com/argoproj/argo-cd/v3/controller/cache.populatePodInfo(0xc004e9e010, 0xc0045544d0)
+	/go/src/github.com/argoproj/argo-cd/controller/cache/info.go:462 +0xca8
+github.com/argoproj/argo-cd/v3/controller/cache.populateNodeInfo(0xc004e9e010, 0xc0045544d0, {0x9b83d40, 0x0, 0x67788d8?})
+	/go/src/github.com/argoproj/argo-cd/controller/cache/info.go:54 +0x4c9
+github.com/argoproj/argo-cd/v3/controller/cache.(*liveStateCache).getCluster.func1(0xc004e9e010, 0x1)
+	/go/src/github.com/argoproj/argo-cd/controller/cache/cache.go:558 +0x85
+github.com/argoproj/gitops-engine/pkg/cache.(*clusterCache).newResource(0xc0017f7340, 0xc004e9e010)
+	/go/src/github.com/argoproj/argo-cd/gitops-engine/pkg/cache/cluster.go:463 +0x82
+github.com/argoproj/gitops-engine/pkg/cache.(*clusterCache).sync.func1.1.1.1({0x67776b0?, 0xc004e9e010?})
+	/go/src/github.com/argoproj/argo-cd/gitops-engine/pkg/cache/cluster.go:1083 +0x65
+k8s.io/apimachinery/pkg/apis/meta/v1/unstructured.(*UnstructuredList).EachListItem(0xc005a240e0, 0xc005a002a0)
+	/go/pkg/mod/k8s.io/apimachinery@v0.34.0/pkg/apis/meta/v1/unstructured/unstructured_list.go:48 +0x6d
+k8s.io/apimachinery/pkg/api/meta.eachListItem({0x67788d8, 0xc005a240e0}, 0xc005a002a0, 0x0)
+	/go/pkg/mod/k8s.io/apimachinery@v0.34.0/pkg/api/meta/help.go:136 +0x8b
+k8s.io/apimachinery/pkg/api/meta.EachListItem({0x67788d8?, 0xc005a240e0?}, 0x0?)
+	/go/pkg/mod/k8s.io/apimachinery@v0.34.0/pkg/api/meta/help.go:119 +0x1f
+github.com/argoproj/gitops-engine/pkg/cache.(*clusterCache).sync.func1.1.1.(*ListPager).EachListItem.2({0x67788d8?, 0xc005a240e0?})
+	/go/pkg/mod/k8s.io/client-go@v0.34.0/tools/pager/pager.go:185 +0x25
+k8s.io/client-go/tools/pager.(*ListPager).eachListChunkBuffered(0xc005a00288, {0x67ad5d0, 0x9b83d40}, {{{0x0, 0x0}, {0x0, 0x0}}, {0x0, 0x0}, {0x0, ...}, ...}, ...)
+	/go/pkg/mod/k8s.io/client-go@v0.34.0/tools/pager/pager.go:245 +0x2a2
+k8s.io/client-go/tools/pager.(*ListPager).EachListItem(...)
+	/go/pkg/mod/k8s.io/client-go@v0.34.0/tools/pager/pager.go:184
+github.com/argoproj/gitops-engine/pkg/cache.(*clusterCache).sync.func1.1.1(0xc005a00288)
+	/go/src/github.com/argoproj/argo-cd/gitops-engine/pkg/cache/cluster.go:1079 +0x116
+github.com/argoproj/gitops-engine/pkg/cache.(*clusterCache).listResources(0xc0017f7340, {0x67ad690?, 0xc0057db130?}, {0x67d43b0, 0xc0057db180}, 0xc005a0bbf0)
+	/go/src/github.com/argoproj/argo-cd/gitops-engine/pkg/cache/cluster.go:763 +0x24d
+github.com/argoproj/gitops-engine/pkg/cache.(*clusterCache).sync.func1.1({0x67d43b0, 0xc0057db180}, {0x0, 0x0})
+	/go/src/github.com/argoproj/argo-cd/gitops-engine/pkg/cache/cluster.go:1078 +0xbd
+github.com/argoproj/gitops-engine/pkg/cache.(*clusterCache).processApi(_, {_, _}, {{{0x0, 0x0}, {0xc0050dd434, 0x3}}, {{0xc0050dd430, 0x4}, {0xc0050dd437, ...}, ...}, ...}, ...)
+	/go/src/github.com/argoproj/argo-cd/gitops-engine/pkg/cache/cluster.go:934 +0x15c
+github.com/argoproj/gitops-engine/pkg/cache.(*clusterCache).sync.func1(0x0?)
+	/go/src/github.com/argoproj/argo-cd/gitops-engine/pkg/cache/cluster.go:1077 +0x273
+github.com/argoproj/gitops-engine/pkg/utils/kube.RunAllAsync.func1()
+	/go/src/github.com/argoproj/argo-cd/gitops-engine/pkg/utils/kube/ctl.go:379 +0x1b
+golang.org/x/sync/errgroup.(*Group).Go.func1()
+	/go/pkg/mod/golang.org/x/sync@v0.19.0/errgroup/errgroup.go:93 +0x50
+created by golang.org/x/sync/errgroup.(*Group).Go in goroutine 255
+	/go/pkg/mod/golang.org/x/sync@v0.19.0/errgroup/errgroup.go:78 +0x95

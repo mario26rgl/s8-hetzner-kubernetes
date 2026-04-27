@@ -2,7 +2,7 @@
 {{- $vclusterNamespace := .Values.vcluster_config.namespace -}}
 {{- $argocdProject := default "default" .Values.argocd.project -}}
 {{- $hostClusterServer := default "https://kubernetes.default.svc" .Values.argocd.host_cluster_server -}}
-{{- $vclusterServer := printf "https://%s.%s.svc.cluster.local" $vclusterName $vclusterNamespace -}}
+{{- $vclusterServer := printf "https://%s.%s" $vclusterName $vclusterNamespace -}}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -20,118 +20,26 @@ spec:
         - .spec.volumeClaimTemplates[].apiVersion
         - .spec.volumeClaimTemplates[].kind
         # - .spec.volumeClaimTemplates[].metadata.name
-  source:
-    repoURL: https://charts.loft.sh
+  sources:
+  - repoURL: https://github.com/mario26rgl/s8-hetzner-kubernetes.git
+    targetRevision: HEAD
+    ref: values
+  - repoURL: https://charts.loft.sh
     targetRevision: {{ .Values.vcluster_config.chart_version }}
     chart: vcluster
     helm:
       releaseName: {{ $vclusterName }}
       # https://github.com/loft-sh/vcluster/blob/v0.33.1/chart/values.yaml
+      valueFiles:
+        - $values/kubernetes/vcluster/vcluster-defaults.yaml
       values: |
-        sync:
-          fromHost:
-            configMaps:
-              enabled: false
-            csiDrivers:
-              enabled: false
-            csiNodes:
-              enabled: false
-            csiStorageCapacities:
-              enabled: false
-            storageClasses:
-              enabled: false
-            ingressClasses:
-              enabled: false
-            runtimeClasses:
-              enabled: false
-            priorityClasses:
-              enabled: false
-            nodes:
-              enabled: false
-            secrets:
-              enabled: false
-          toHost:
-            services:
-              enabled: true
-            endpoints:
-              enabled: true
-            endpointSlices:
-              enabled: true
-            persistentVolumeClaims:
-              enabled: true
-            configMaps:
-              enabled: true
-              all: false
-            secrets:
-              enabled: true
-              all: false
-            pods:
-              enabled: true
-              runtimeClassName: ""
-            ingresses:
-              enabled: false
-            networkPolicies:
-              enabled: true
-            serviceAccounts:
-              enabled: true
-            persistentVolumes:
-              enabled: false
-            namespaces:
-              enabled: false
-
         controlPlane:
           proxy:
             extraSANs:
-            - "{{ $vclusterName }}.{{ $vclusterNamespace }}.svc.cluster.local"
-            - "{{ $vclusterName }}.{{ $vclusterNamespace }}.svc"
-            - "{{ $vclusterName }}.{{ $vclusterNamespace }}"
-          backingStore:
-            etcd:
-              deploy:
-                enabled: true
-                statefulSet:
-                  highAvailability:
-                    replicas: 1
-                  scheduling:
-                    nodeSelector: {}
-                    affinity: {}
-                    tolerations: []
-                    topologySpreadConstraints: []
-                  persistence:
-                    volumeClaim:
-                      enabled: true
-                      size: 10Gi
-                      storageClass: hcloud-volumes
-          serviceMonitor:
-            enabled: false
-            labels: {}
-            annotations: {}
-
-        deploy:
-          cni:
-            flannel:
-              enabled: false
-          kubeProxy:
-            enabled: false
-
-        integrations:
-          metricsServer:
-            enabled: true
-            nodes: false
-            pods: true
-
-        policies:
-          resourceQuota:
-            enabled: true
-          networkPolicy:
-            enabled: false
-
+            - "{{ $vclusterServer }}"
         exportKubeConfig:
           context: {{ $vclusterName }}
           server: {{ $vclusterServer }}
-
-        telemetry:
-          enabled: true
 {{- with .Values.vcluster_config.overrides }}
 {{ . | nindent 8 }}
 {{- end }}
