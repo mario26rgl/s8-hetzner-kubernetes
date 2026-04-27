@@ -8,8 +8,33 @@ tenants:
     sourceRepos:
       - https://github.com/mario26rgl/s8-hetzner-kubernetes.git
     vclusterOverrides: |
-      telemetry:
-        enabled: false
+      controlPlane:
+        statefulSet:
+          scheduling:
+            nodeSelector:
+              topology.s8.io/location: aws-external
+            tolerations:
+              - key: topology.s8.io/location
+                operator: Equal
+                value: aws-external
+                effect: NoSchedule
+        coredns:
+          deployment:
+            nodeSelector:
+              topology.s8.io/location: aws-external
+            tolerations:
+              - key: topology.s8.io/location
+                operator: Equal
+                value: aws-external
+                effect: NoSchedule
+      sync:
+        toHost:
+          pods:
+            enforceTolerations:
+              - key: topology.s8.io/location
+                operator: Equal
+                value: aws-external
+                effect: NoSchedule
     argocdUser:
       username: tenant-one-admin
       roleName: tenant-admin

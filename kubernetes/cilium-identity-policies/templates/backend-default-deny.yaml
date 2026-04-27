@@ -1,0 +1,26 @@
+{{- if .Values.enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: {{ .Values.policy.namePrefix }}-backend-default-deny-and-allow-frontend
+  namespace: {{ .Values.backend.namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+{{ toYaml .Values.backend.labels | indent 6 }}
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": {{ .Values.frontend.namespace | quote }}
+            "k8s:io.cilium.k8s.policy.serviceaccount": {{ .Values.frontend.serviceAccount | quote }}
+{{- range $key, $value := .Values.frontend.labels }}
+            {{ printf "k8s:%s" $key | quote }}: {{ $value | quote }}
+{{- end }}
+            "io.cilium.k8s.policy.cluster": {{ .Values.clusterIdentity.allowedRemoteCluster | quote }}
+      authentication:
+        mode: {{ .Values.authentication.mode | quote }}
+      toPorts:
+        - ports:
+            - port: {{ .Values.backend.port | quote }}
+              protocol: {{ .Values.backend.protocol | quote }}
+{{- end }}

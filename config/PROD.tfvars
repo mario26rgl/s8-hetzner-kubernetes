@@ -22,6 +22,7 @@ issuer_environment                       = "staging"
 argocd_github_repo_url                   = "https://github.com/mario26rgl/s8-hetzner-kubernetes"
 argocd_github_username                   = "mario26rgl"
 cilium_version                           = "1.19.2"
+enable_poc_hybrid_aws                    = true
 
 extra_firewall_rules = [
   {
@@ -29,7 +30,16 @@ extra_firewall_rules = [
     direction       = "out"
     protocol        = "tcp"
     port            = "2379"
+    source_ips      = []
     destination_ips = ["0.0.0.0/0", "::/0"]
+  },
+  {
+    description     = "Allow Inbound Wireguard traffic for the PoC",
+    direction       = "in"
+    protocol        = "udp"
+    port            = "51820"
+    source_ips      = ["0.0.0.0/0", "::/0"]
+    destination_ips = []
   }
 ]
 
@@ -133,4 +143,5 @@ nat_router = {
   server_type = "cx23"
   location    = "hel1"
   labels      = {}
+  enable_sudo = true
 }

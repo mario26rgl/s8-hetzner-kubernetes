@@ -1,0 +1,26 @@
+{{- if .Values.enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: {{ .Values.policy.namePrefix }}-frontend-to-backend-egress
+  namespace: {{ .Values.frontend.namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+{{ toYaml .Values.frontend.labels | indent 6 }}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": {{ .Values.backend.namespace | quote }}
+            "k8s:io.cilium.k8s.policy.serviceaccount": {{ .Values.backend.serviceName | quote }}
+{{- range $key, $value := .Values.backend.labels }}
+            {{ printf "k8s:%s" $key | quote }}: {{ $value | quote }}
+{{- end }}
+            "io.cilium.k8s.policy.cluster": {{ .Values.clusterIdentity.allowedRemoteCluster | quote }}
+      authentication:
+        mode: {{ .Values.authentication.mode | quote }}
+      toPorts:
+        - ports:
+            - port: {{ .Values.backend.port | quote }}
+              protocol: {{ .Values.backend.protocol | quote }}
+{{- end }}
