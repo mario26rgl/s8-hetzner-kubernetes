@@ -1138,7 +1138,7 @@ variable "enable_argocd" {
 
 variable "argocd_version" {
   type        = string
-  default     = "*"
+  default     = "9.5.2"
   description = "Version of the ArgoCD Helm chart. See https://github.com/argoproj/argo-helm/releases for the available versions."
 }
 

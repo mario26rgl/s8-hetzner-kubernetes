@@ -19,7 +19,7 @@ spec:
               elementsYaml: "{{ .tenants | toJson }}"
   template:
     metadata:
-      name: "tenant-{{ .name }}-bootstrap"
+      name: "{{ .name }}-bootstrap"
       namespace: argocd
       labels:
         tenant: "{{ .name }}"

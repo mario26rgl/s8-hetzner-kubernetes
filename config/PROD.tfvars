@@ -24,6 +24,8 @@ argocd_github_username                   = "mario26rgl"
 cilium_version                           = "1.19.2"
 enable_poc_hybrid_aws                    = true
 enable_local_storage = true
+cilium_merge_values = "ipv4NativeRoutingCIDR: \"10.0.0.0/8\"\n"
+install_k3s_version = "v1.35.4+k3s1"
 
 extra_firewall_rules = [
   {

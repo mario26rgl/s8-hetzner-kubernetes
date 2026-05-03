@@ -1,5 +1,4 @@
 # Single source of truth for tenant onboarding.
-# Add one object to the tenants array in a PR to bootstrap a new tenant vcluster stack.
 tenants:
   - name: tenant-one
     namespace: tenant-one
@@ -8,6 +7,78 @@ tenants:
     sourceRepos:
       - https://github.com/mario26rgl/s8-hetzner-kubernetes.git
     vclusterOverrides: |
+      logging:
+        encoding: json
+      policies:
+        resourceQuota:
+          enabled: true
+          quota:
+            requests.cpu: 10
+            requests.memory: 20Gi
+            limits.cpu: 20
+            limits.memory: 40Gi
+            services.loadbalancers: 1
+        networkPolicy:
+          enabled: true
+          workload:
+            publicEgress:
+              enabled: true
+              cidr: 0.0.0.0/0
+      controlPlane:
+        backingStore:
+          etcd:
+            deploy:
+              statefulSet:
+                persistence:
+                  volumeClaim:
+                    size: 1Gi
+                    storageClass: hcloud-volumes
+        statefulSet:
+          persistence:
+            volumeClaim:
+              storageClass: hcloud-volumes
+    argocdUser:
+      username: tenant-one-admin
+      roleName: tenant-admin
+      passwordHashSecretRef:
+        key: /argocd/tenants/tenant-one/user
+        property: passwordHash
+      passwordMtimeSecretRef:
+        key: /argocd/tenants/tenant-one/user
+        property: passwordMtime
+    repoCredentials:
+      enabled: true
+      authType: basic
+      name: tenant-one-repo
+      secretRef:
+        key: /argocd/tenants/tenant-one/repo
+        urlProperty: url
+        usernameProperty: username
+        passwordProperty: password
+  - name: tenant-hybrid
+    namespace: tenant-hybrid
+    project: tenant-hybrid
+    chartVersion: "0.33.1"
+    sourceRepos:
+      - https://github.com/mario26rgl/s8-hetzner-kubernetes.git
+    vclusterOverrides: |
+      logging:
+        encoding: json
+      policies:
+        resourceQuota:
+          enabled: true
+          quota:
+            requests.cpu: 10
+            requests.memory: 20Gi
+            limits.cpu: 20
+            limits.memory: 40Gi
+            services.loadbalancers: 1
+        networkPolicy:
+          enabled: true
+          workload:
+            publicEgress:
+              enabled: true
+              cidr: 0.0.0.0/0
       controlPlane:
         backingStore:
           etcd:
@@ -52,53 +123,21 @@ tenants:
             enforceTolerations:
               - "topology.s8.io/location=aws-external:NoSchedule"
               - "node.cloudprovider.kubernetes.io/uninitialized=true:NoSchedule"
-
     argocdUser:
       username: tenant-one-admin
       roleName: tenant-admin
       passwordHashSecretRef:
-        key: /argocd/tenants/tenant-one/user
+        key: /argocd/tenants/tenant-hybrid/user
         property: passwordHash
       passwordMtimeSecretRef:
-        key: /argocd/tenants/tenant-one/user
+        key: /argocd/tenants/tenant-hybrid/user
         property: passwordMtime
     repoCredentials:
       enabled: true
       authType: basic
       name: tenant-one-repo
       secretRef:
-        key: /argocd/tenants/tenant-one/repo
+        key: /argocd/tenants/tenant-hybrid/repo
         urlProperty: url
         usernameProperty: username
         passwordProperty: password
-
-
-# Example entry:
-# tenants:
-#   - name: tenant-acme
-#     namespace: tenant-acme
-#     project: tenant-acme
-#     chartVersion: "0.33.1"
-#     sourceRepos:
-#       - https://github.com/mario26rgl/s8-hetzner-kubernetes.git
-#     vclusterOverrides: |
-#       telemetry:
-#         enabled: false
-#     argocdUser:
-#       username: tenant-acme-admin
-#       roleName: tenant-admin
-#       passwordHashSecretRef:
-#         key: /argocd/tenants/tenant-acme/user
-#         property: passwordHash
-#       passwordMtimeSecretRef:
-#         key: /argocd/tenants/tenant-acme/user
-#         property: passwordMtime
-#     repoCredentials:
-#       enabled: true
-#       authType: basic
-#       name: tenant-acme-repo
-#       secretRef:
-#         key: /argocd/tenants/tenant-acme/repo
-#         urlProperty: url
-#         usernameProperty: username
-#         passwordProperty: password
