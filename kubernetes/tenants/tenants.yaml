@@ -55,89 +55,89 @@ tenants:
         urlProperty: url
         usernameProperty: username
         passwordProperty: password
-  - name: tenant-hybrid
-    namespace: tenant-hybrid
-    project: tenant-hybrid
-    chartVersion: "0.33.1"
-    sourceRepos:
-      - https://github.com/mario26rgl/s8-hetzner-kubernetes.git
-    vclusterOverrides: |
-      logging:
-        encoding: json
-      policies:
-        resourceQuota:
-          enabled: true
-          quota:
-            requests.cpu: 10
-            requests.memory: 20Gi
-            limits.cpu: 20
-            limits.memory: 40Gi
-            services.loadbalancers: 1
-        networkPolicy:
-          enabled: true
-          workload:
-            publicEgress:
-              enabled: true
-              cidr: 0.0.0.0/0
-      controlPlane:
-        backingStore:
-          etcd:
-            deploy:
-              statefulSet:
-                persistence:
-                  volumeClaim:
-                    size: 1Gi
-                    storageClass: local-path
-        statefulSet:
-          persistence:
-            volumeClaim:
-              storageClass: local-path
-          scheduling:
-            nodeSelector:
-              topology.s8.io/location: aws-external
-            tolerations:
-              - key: topology.s8.io/location
-                operator: Equal
-                value: aws-external
-                effect: NoSchedule
-              - key: node.cloudprovider.kubernetes.io/uninitialized
-                operator: Equal
-                value: 'true'
-                effect: NoSchedule
-        coredns:
-          deployment:
-            nodeSelector:
-              topology.s8.io/location: aws-external
-            tolerations:
-              - key: topology.s8.io/location
-                operator: Equal
-                value: aws-external
-                effect: NoSchedule
-              - key: node.cloudprovider.kubernetes.io/uninitialized
-                operator: Equal
-                value: 'true'
-                effect: NoSchedule
-      sync:
-        toHost:
-          pods:
-            enforceTolerations:
-              - "topology.s8.io/location=aws-external:NoSchedule"
-              - "node.cloudprovider.kubernetes.io/uninitialized=true:NoSchedule"
-    argocdUser:
-      username: tenant-one-admin
-      roleName: tenant-admin
-      passwordHashSecretRef:
-        key: /argocd/tenants/tenant-hybrid/user
-        property: passwordHash
-      passwordMtimeSecretRef:
-        key: /argocd/tenants/tenant-hybrid/user
-        property: passwordMtime
-    repoCredentials:
-      enabled: true
-      authType: basic
-      name: tenant-one-repo
-      secretRef:
-        key: /argocd/tenants/tenant-hybrid/repo
-        urlProperty: url
-        usernameProperty: username
-        passwordProperty: password
+  # - name: tenant-hybrid
+  #   namespace: tenant-hybrid
+  #   project: tenant-hybrid
+  #   chartVersion: "0.33.1"
+  #   sourceRepos:
+  #     - https://github.com/mario26rgl/cndro26-vcluster-cilium-poc.git
+  #   vclusterOverrides: |
+  #     logging:
+  #       encoding: json
+  #     policies:
+  #       resourceQuota:
+  #         enabled: true
+  #         quota:
+  #           requests.cpu: 10
+  #           requests.memory: 20Gi
+  #           limits.cpu: 20
+  #           limits.memory: 40Gi
+  #           services.loadbalancers: 1
+  #       networkPolicy:
+  #         enabled: true
+  #         workload:
+  #           publicEgress:
+  #             enabled: true
+  #             cidr: 0.0.0.0/0
+  #     controlPlane:
+  #       backingStore:
+  #         etcd:
+  #           deploy:
+  #             statefulSet:
+  #               persistence:
+  #                 volumeClaim:
+  #                   size: 1Gi
+  #                   storageClass: local-path
+  #       statefulSet:
+  #         persistence:
+  #           volumeClaim:
+  #             storageClass: local-path
+  #         scheduling:
+  #           nodeSelector:
+  #             topology.s8.io/location: aws-external
+  #           tolerations:
+  #             - key: topology.s8.io/location
+  #               operator: Equal
+  #               value: aws-external
+  #               effect: NoSchedule
+  #             - key: node.cloudprovider.kubernetes.io/uninitialized
+  #               operator: Equal
+  #               value: 'true'
+  #               effect: NoSchedule
+  #       coredns:
+  #         deployment:
+  #           nodeSelector:
+  #             topology.s8.io/location: aws-external
+  #           tolerations:
+  #             - key: topology.s8.io/location
+  #               operator: Equal
+  #               value: aws-external
+  #               effect: NoSchedule
+  #             - key: node.cloudprovider.kubernetes.io/uninitialized
+  #               operator: Equal
+  #               value: 'true'
+  #               effect: NoSchedule
+  #     sync:
+  #       toHost:
+  #         pods:
+  #           enforceTolerations:
+  #             - "topology.s8.io/location=aws-external:NoSchedule"
+  #             - "node.cloudprovider.kubernetes.io/uninitialized=true:NoSchedule"
+  #   argocdUser:
+  #     username: tenant-one-admin
+  #     roleName: tenant-admin
+  #     passwordHashSecretRef:
+  #       key: /argocd/tenants/tenant-hybrid/user
+  #       property: passwordHash
+  #     passwordMtimeSecretRef:
+  #       key: /argocd/tenants/tenant-hybrid/user
+  #       property: passwordMtime
+  #   repoCredentials:
+  #     enabled: true
+  #     authType: basic
+  #     name: tenant-one-repo
+  #     secretRef:
+  #       key: /argocd/tenants/tenant-hybrid/repo
+  #       urlProperty: url
+  #       usernameProperty: username
+  #       passwordProperty: password
