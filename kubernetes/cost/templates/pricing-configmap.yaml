@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: pricing-configs
+  name: hetzner-pricing
   namespace: opencost
 data:
   # Prices sourced from Hetzner API /v1/pricing (EUR, net, no VAT)

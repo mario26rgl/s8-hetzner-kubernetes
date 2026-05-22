@@ -14,12 +14,12 @@ spec:
         valuesObject:
           opencost:
             exporter:
-              cloudProviderApiKey: "CSV"
               extraEnv:
-                CSV_PATH: /var/configs/hetzner-pricing.csv
+                USE_CSV_PROVIDER: "true"
+                CSV_PATH: "/config/hetzner-pricing.csv"
               extraVolumeMounts:
-                - name: pricing-csv
-                  mountPath: /var/configs
+                - name: hetzner-pricing-csv
+                  mountPath: /config
                   readOnly: true
             ui:
               enabled: true
@@ -45,9 +45,12 @@ spec:
                 enabled: true
                 url: "http://monitoring-prometheus.monitoring.svc:9090"
           extraVolumes:
-            - name: pricing-csv
+            - name: hetzner-pricing-csv
               configMap:
-                name: hetzner-pricing-csv
+                name: hetzner-pricing
+                items:
+                - key: hetzner-pricing.csv
+                  path: hetzner-pricing.csv
 
     # Source 2: local chart containing only the Hetzner pricing ConfigMap
     - repoURL: https://github.com/mario26rgl/s8-hetzner-kubernetes.git
