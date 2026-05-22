@@ -39,3 +39,10 @@ module "values_merger_argocd" {
   override_values = var.argocd_values
   merge_values    = var.argocd_merge_values
 }
+
+module "values_merger_external_secrets" {
+  source          = "./modules/values_merger"
+  default_values  = local.external_secrets_values_default
+  override_values = var.external_secrets_values
+  merge_values    = var.external_secrets_merge_values
+}

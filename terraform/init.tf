@@ -289,7 +289,6 @@ resource "terraform_data" "kustomization" {
     bastion_port        = local.ssh_bastion.bastion_port
     bastion_user        = local.ssh_bastion.bastion_user
     bastion_private_key = local.ssh_bastion.bastion_private_key
-
   }
 
   # Upload kustomization.yaml for kubectl apply -k
@@ -396,6 +395,30 @@ resource "terraform_data" "kustomization" {
       }
     ) : ""
     destination = "/var/post_install/argocd.yaml"
+  }
+
+  provisioner "file" {
+    content = var.enable_external_secrets ? templatefile(
+      "${path.module}/templates/external-secrets.yaml.tpl",
+      {
+        version = var.external_secrets_version
+        values  = indent(4, local.external_secrets_values)
+      }
+    ) : ""
+    destination = "/var/post_install/external-secrets.yaml"
+  }
+
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/hubble-ingress.yaml.tpl",
+      {
+        hubble_ingress_hostname = var.hubble_ingress_hostname
+        enable_cert_manager     = var.enable_cert_manager
+        acme_email              = var.acme_email
+        issuer_environment      = var.issuer_environment
+      }
+    )
+    destination = "/var/post_install/hubble-ingress.yaml"
   }
 
   # Deploy our post-installation kustomization

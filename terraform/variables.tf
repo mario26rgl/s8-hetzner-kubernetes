@@ -1021,6 +1021,12 @@ variable "k3s_exec_agent_args" {
   description = "Agents nodes are started with `k3s agent {k3s_exec_agent_args}`. Use this to add kubelet-arg for example."
 }
 
+variable "k3s_masquerade_as_aws_nodes" {
+  type        = bool
+  default     = false
+  description = "When true, generate deterministic EC2-like node names and kubelet provider-ids for all k3s nodes."
+}
+
 variable "k3s_prefer_bundled_bin" {
   type        = bool
   default     = false
@@ -1185,6 +1191,38 @@ variable "argocd_merge_values" {
   description = "Additional ArgoCD Helm chart values to deep-merge on top of the defaults."
 }
 
+### External Secrets Operator Configuration
+variable "enable_external_secrets" {
+  description = "External Secrets Operator deployment toggle"
+  type        = bool
+  default     = false
+}
+
+variable "external_secrets_version" {
+  type        = string
+  default     = "0.9.9"
+  description = "Version of the External Secrets Operator Helm chart. See https://github.com/external-secrets/external-secrets/releases for the available versions."
+}
+
+variable "external_secrets_values" {
+  type        = string
+  default     = ""
+  description = "Full override for the External Secrets Operator Helm chart values. When set, the default values are replaced entirely."
+}
+
+variable "external_secrets_merge_values" {
+  type        = string
+  default     = ""
+  description = "Additional External Secrets Operator Helm chart values to deep-merge on top of the defaults."
+}
+
+### Hubble UI Ingress Configuration
+variable "hubble_ingress_hostname" {
+  type        = string
+  default     = ""
+  description = "Hostname to expose the Hubble UI via the Traefik ingress (e.g. hubble.example.com). Leave empty to skip ingress creation."
+}
+
 ### DNS Configuration
 variable "dns_zone" {
   type        = string
@@ -1211,4 +1249,46 @@ variable "issuer_environment" {
     condition     = contains(["prod", "staging"], var.issuer_environment)
     error_message = "The issuer_environment must be either 'prod' or 'staging'."
   }
+}
+
+variable "cilium_mtls_enabled" {
+  type        = bool
+  default     = false
+  description = "Enable Cilium mTLS functionality"
+}
+
+variable "cilium_clustermesh_enabled" {
+  type        = bool
+  default     = false
+  description = "Whether to enable Cilium clustermesh for multi-node clusters. Requires cilium_mtls_enabled to be true. When enabled, Cilium will use the Hetzner Load Balancer to securely connect the nodes in the cluster for features like network policy enforcement and visibility across nodes."
+}
+
+variable "hzn_clustermesh_lb_ip" {
+  type        = string
+  default     = "10.0.1.100"
+  description = "The IP address of the Hetzner Load Balancer used for Cilium clustermesh connectivity in multi-node clusters with control plane load balancer enabled. This should be set to the private IP of the LB if the LB is not exposed to the public internet, or the public IP if it is. Required when cilium_mtls_enabled is true and use_control_plane_lb is true."
+  validation {
+    condition     = var.hzn_clustermesh_lb_ip == null || can(regex("^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$", var.hzn_clustermesh_lb_ip)) || can(regex("^[0-9a-fA-F:]+$", var.hzn_clustermesh_lb_ip))
+    error_message = "The hzn_clustermesh_lb_ip must be a valid IPv4 or IPv6 address or null."
+  }
+}
+
+################################################################################
+# EKS POC-specific variables
+################################################################################
+
+variable "enable_poc_hybrid_aws" {
+  description = "Enable the AWS external-node hybrid PoC resources."
+  type        = bool
+  default     = false
+}
+
+variable "eks_poc_cluster_name" {
+  type    = string
+  default = "cndro-eks-poc"
+}
+
+variable "eks_clustermesh_lb_ip" {
+  type    = string
+  default = "192.168.200.126"
 }

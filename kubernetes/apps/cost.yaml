@@ -1,0 +1,72 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: opencost
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    # Source 1: upstream OpenCost Helm chart
+    - repoURL: https://opencost.github.io/opencost-helm-chart
+      chart: opencost
+      targetRevision: 1.43.1
+      helm:
+        valuesObject:
+          opencost:
+            exporter:
+              cloudProviderApiKey: "CSV"
+              extraEnv:
+                CSV_PATH: /var/configs/hetzner-pricing.csv
+              extraVolumeMounts:
+                - name: pricing-csv
+                  mountPath: /var/configs
+                  readOnly: true
+            ui:
+              enabled: true
+              ingress:
+                enabled: true
+                ingressClassName: traefik
+                annotations:
+                  traefik.ingress.kubernetes.io/router.entrypoints: websecure
+                  traefik.ingress.kubernetes.io/router.tls: "true"
+                  cert-manager.io/cluster-issuer: letsencrypt-staging
+                hosts:
+                  - host: opencost.s8-hetzner.online
+                    paths:
+                      - /
+                tls:
+                  - secretName: opencost-tls
+                    hosts:
+                      - opencost.s8-hetzner.online
+            prometheus:
+              internal:
+                enabled: false
+              external:
+                enabled: true
+                url: "http://monitoring-prometheus.monitoring.svc:9090"
+          extraVolumes:
+            - name: pricing-csv
+              configMap:
+                name: hetzner-pricing-csv
+
+    # Source 2: local chart containing only the Hetzner pricing ConfigMap
+    - repoURL: https://github.com/mario26rgl/s8-hetzner-kubernetes.git
+      targetRevision: main
+      path: kubernetes/cost
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: opencost
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: -1
+      backoff:
+        duration: "5s"
+        factor: 2
+        maxDuration: "3m"

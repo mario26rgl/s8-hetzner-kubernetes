@@ -1,3 +1,6 @@
+# Local volumes
+code/project/db-data
+
 # Backup files
 .bak
 

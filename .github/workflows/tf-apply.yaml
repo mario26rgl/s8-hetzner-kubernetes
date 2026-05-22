@@ -1,11 +1,11 @@
 name: Terraform Apply
 
-on:
-  push:
-    branches: [main]
-    paths:
-      - 'terraform/**'
-      - '.github/workflows/tf-apply.yaml'
+# on:
+#   push:
+#     branches: [main]
+#     paths:
+#       - 'terraform/**'
+#       - '.github/workflows/tf-apply.yaml'
 
 # How plan → apply consistency works:
 #   A regular merge commit has two parents:

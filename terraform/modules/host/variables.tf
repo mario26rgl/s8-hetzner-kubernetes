@@ -196,3 +196,9 @@ variable "network_gw_ipv4" {
   type        = string
   description = "Default IPv4 gateway address for the node's primary network interface"
 }
+
+variable "k3s_masquerade_as_aws_nodes" {
+  type        = bool
+  default     = false
+  description = "When true, generate deterministic EC2-like node names and kubelet provider-ids for all k3s nodes."
+}

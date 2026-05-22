@@ -1,4 +1,7 @@
 locals {
+  # Hybrid AWS-Hetzner POC toggle
+  poc_hybrid_enabled = var.enable_poc_hybrid_aws && var.nat_router != null
+
   # Do not hardcode private ssh key
   ssh_agent_identity = var.ssh_public_key
 
@@ -58,6 +61,8 @@ locals {
       lookup(local.cni_install_resources, var.cni_plugin, []),
       var.enable_cert_manager ? ["cert_manager.yaml"] : [],
       var.enable_argocd ? ["argocd.yaml"] : [],
+      var.enable_external_secrets ? ["external-secrets.yaml"] : [],
+      var.cilium_hubble_enabled ? ["hubble-ingress.yaml"] : [],
     ),
     patches = [
       {
@@ -585,6 +590,76 @@ k8s:
 # Replace kube-proxy with Cilium
 kubeProxyReplacement: true
 
+# Cluster identity
+cluster:
+  name: "${var.cluster_name}"
+  id: 1
+
+%{if var.cilium_clustermesh_enabled}
+clustermesh:
+  enabled: true
+  useAPIServer: true
+  apiserver:
+    tls:
+      auto:
+        enabled: true
+        method: cronJob
+      server:
+        extraIpAddresses:
+          - "${var.hzn_clustermesh_lb_ip}"
+    service:
+      type: LoadBalancer
+      annotations:
+        load-balancer.hetzner.cloud/disable-public-network: "true"
+        load-balancer.hetzner.cloud/disable-private-ingress: "false"
+        load-balancer.hetzner.cloud/use-private-ip: "true"
+        load-balancer.hetzner.cloud/location: "hel1"
+        load-balancer.hetzner.cloud/type: "lb11"
+        load-balancer.hetzner.cloud/algorithm-type: "round_robin"
+        load-balancer.hetzner.cloud/private-ipv4: "${var.hzn_clustermesh_lb_ip}"
+        load-balancer.hetzner.cloud/name: "cilium-clustermesh-lb"
+  config:
+    enabled: true
+    clusters:
+      - name: "${var.eks_poc_cluster_name}"
+        address: "${var.eks_clustermesh_lb_ip}"
+        port: 2379
+%{endif~}
+
+%{if var.cilium_mtls_enabled}
+# Enable Cilium's built-in TLS encryption for all cluster traffic
+authentication:
+  enabled: true
+  mutual:
+    spire:
+      enabled: true
+      install:
+        agent:
+          tolerations:
+            - key: node.kubernetes.io/not-ready
+              effect: NoSchedule
+            - key: node-role.kubernetes.io/master
+              effect: NoSchedule
+            - key: node-role.kubernetes.io/control-plane
+              effect: NoSchedule
+            - key: node.cloudprovider.kubernetes.io/uninitialized
+              effect: NoSchedule
+              value: "true"
+            - key: topology.s8.io/location
+              effect: NoSchedule
+              value: "aws-external"
+            - key: CriticalAddonsOnly
+              operator: "Exists"
+        server:
+          securityContext:
+            runAsGroup: 1000
+            runAsUser: 1000
+          podSecurityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+%{endif~}
+
 %{if var.disable_kube_proxy}
 # Enable health check server (healthz) for the kube-proxy replacement
 kubeProxyReplacementHealthzBindAddr: "0.0.0.0:10256"
@@ -636,6 +711,10 @@ hubble:
     enabled: true
   ui:
     enabled: true
+  tls:
+    auto:
+      enabled: true
+      method: cronJob
   metrics:
     enabled:
 %{for metric in var.cilium_hubble_metrics_enabled~}
@@ -644,7 +723,7 @@ hubble:
 %{endif~}
 
 
-MTU: 1450
+MTU: 1400
   EOT
 
   cilium_values = module.values_merger_cilium.values
@@ -660,6 +739,10 @@ node:
               - key: "node-role.kubernetes.io/control-plane"
                 operator: DoesNotExist
 %{endif~}
+              - key: "topology.s8.io/location"
+                operator: NotIn
+                values:
+                  - aws-external
               - key: "instance.hetzner.cloud/provided-by"
                 operator: NotIn
                 values:
@@ -872,6 +955,12 @@ configs:
   EOT
 
   argocd_values = module.values_merger_argocd.values
+
+  external_secrets_values_default = <<-EOT
+installCRDs: true
+  EOT
+
+  external_secrets_values = module.values_merger_external_secrets.values
 
   kured_options = merge({
     "reboot-command" : "/usr/bin/systemctl reboot",
@@ -1210,6 +1299,16 @@ EOT
 - [mkdir, '-p', '${dirname(var.k3s_audit_log_path)}']
 - [chmod, '750', '${dirname(var.k3s_audit_log_path)}']
 - [chown, 'root:root', '${dirname(var.k3s_audit_log_path)}']
+
+# Prepare SPIRE socket directories with labels that containers can mount under SELinux.
+- [mkdir, '-p', '/run/spire/sockets']
+- [mkdir, '-p', '/var/run/spire-server/sockets']
+- [chown, '-R', '1000:1000', '/run/spire']
+- [chown, '-R', '1000:1000', '/var/run/spire-server']
+- [semanage, 'fcontext', '-a', '-t', 'container_file_t', '/run/spire(/.*)?']
+- [semanage, 'fcontext', '-a', '-t', 'container_file_t', '/var/run/spire-server(/.*)?']
+- [restorecon, '-Rv', '/run/spire']
+- [restorecon, '-Rv', '/var/run/spire-server']
 
 # Add logic to truly disable SELinux if disable_selinux = true.
 # We'll do it by appending to cloudinit_runcmd_common.

@@ -33,9 +33,21 @@ terraform {
       source  = "hashicorp/random"
       version = ">= 3.8.1"
     }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.33.0"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = ">= 2.15.0"
+    }
     aws = {
-      source  = "hashicorp/aws"
-      version = ">= 5.74.0, < 6.0.0"
+      source = "hashicorp/aws"
+      # version = ">= 5.74.0, < 6.0.0"
+    }
+    http = {
+      source  = "hashicorp/http"
+      version = ">= 3.4.5"
     }
   }
   backend "s3" {

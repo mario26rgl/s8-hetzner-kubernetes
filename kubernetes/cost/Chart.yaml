@@ -1,4 +1,4 @@
 apiVersion: v2
-name: cost-tracking
-description: Helm chart for deploying the cost tracking component of the example-webapp
-version: 0.0.1
+name: opencost-hetzner-pricing
+description: Hetzner CSV pricing ConfigMap for OpenCost
+version: 0.1.0

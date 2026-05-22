@@ -7,6 +7,8 @@ module "agents" {
 
   for_each = local.agent_nodes
 
+  k3s_masquerade_as_aws_nodes = var.k3s_masquerade_as_aws_nodes
+
   name                             = "${var.cluster_name}-${each.value.nodepool_name}${try(each.value.node_name_suffix, "")}"
   microos_snapshot_id              = data.hcloud_image.microos_x86_snapshot.id
   ssh_port                         = var.ssh_port
@@ -60,7 +62,6 @@ locals {
         local.kubelet_arg,
         v.kubelet_args,
         var.k3s_global_kubelet_args,
-        var.k3s_agent_kubelet_args
       )
       flannel-iface = local.flannel_iface
       node-ip       = module.agents[k].private_ipv4_address

@@ -42,12 +42,11 @@ resource "hcloud_network_route" "nat_route_public_internet" {
 resource "hcloud_primary_ip" "nat_router_primary_ipv4" {
   # explicitly declare the ipv4 address, such that the address
   # is stable against possible replacements of the nat router
-  count         = var.nat_router != null ? 1 : 0
-  type          = "ipv4"
-  name          = "${local.nat_router_name}-ipv4"
-  location      = var.nat_router.location
-  auto_delete   = false
-  assignee_type = "server"
+  count       = var.nat_router != null ? 1 : 0
+  type        = "ipv4"
+  name        = "${local.nat_router_name}-ipv4"
+  location    = var.nat_router.location
+  auto_delete = false
 
   # Prevent recreation on location shift
   lifecycle {
@@ -58,12 +57,11 @@ resource "hcloud_primary_ip" "nat_router_primary_ipv4" {
 resource "hcloud_primary_ip" "nat_router_primary_ipv6" {
   # explicitly declare the ipv6 address, such that the address
   # is stable against possible replacements of the nat router
-  count         = var.nat_router != null ? 1 : 0
-  type          = "ipv6"
-  name          = "${local.nat_router_name}-ipv6"
-  location      = var.nat_router.location
-  auto_delete   = false
-  assignee_type = "server"
+  count       = var.nat_router != null ? 1 : 0
+  type        = "ipv6"
+  name        = "${local.nat_router_name}-ipv6"
+  location    = var.nat_router.location
+  auto_delete = false
 
   # Prevent recreation on location shift
   lifecycle {

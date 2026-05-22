@@ -1,0 +1,73 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/prometheus-community/helm-charts.git'
+    targetRevision: kube-prometheus-stack-85.2.2
+    path: charts/kube-prometheus-stack
+    helm:
+      releaseName: monitoring
+      valuesObject:
+        nameOverride: monitoring
+        namespaceOverride: monitoring
+        crds:
+          enabled: true
+        grafana:
+          enabled: true
+          defaultDashboardsEnabled: true
+          ingress:
+            enabled: true
+            ingressClassName: traefik
+            annotations:
+              traefik.ingress.kubernetes.io/router.entrypoints: websecure
+              traefik.ingress.kubernetes.io/router.tls: "true"
+              cert-manager.io/cluster-issuer: letsencrypt-staging
+            hosts:
+              - grafana.s8-hetzner.online
+            path: /
+            tls:
+              - secretName: grafana-tls
+                hosts:
+                  - grafana.s8-hetzner.online
+          sidecar:
+            datasources:
+              enabled: true
+              defaultDatasourceEnabled: true
+              isDefaultDatasource: true
+              name: Prometheus
+              uid: prometheus
+              url: http://monitoring-prometheus.monitoring.svc:9090
+        alertmanager:
+          enabled: true
+          ingress:
+            enabled: false
+        prometheus:
+          enabled: true
+          prometheusSpec:
+            retention: 15d
+            serviceMonitorSelectorNilUsesHelmValues: false
+            podMonitorSelectorNilUsesHelmValues: false
+            ruleSelectorNilUsesHelmValues: false
+            serviceMonitorNamespaceSelector: {}
+            podMonitorNamespaceSelector: {}
+            ruleNamespaceSelector: {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: -1
+      backoff:
+        duration: "5s"
+        factor: 2
+        maxDuration: "3m"

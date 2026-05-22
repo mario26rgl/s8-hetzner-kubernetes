@@ -7,6 +7,8 @@ module "control_planes" {
 
   for_each = local.control_plane_nodes
 
+  k3s_masquerade_as_aws_nodes = var.k3s_masquerade_as_aws_nodes
+
   name                             = "${var.cluster_name}-${each.value.nodepool_name}"
   microos_snapshot_id              = data.hcloud_image.microos_x86_snapshot.id
   ssh_port                         = var.ssh_port
@@ -129,7 +131,7 @@ locals {
       disable-kube-proxy       = var.disable_kube_proxy
       disable                  = local.disable_extras
       # Kubelet arg precedence (last wins): local.kubelet_arg > v.kubelet_args > k3s_global_kubelet_args > k3s_control_plane_kubelet_args
-      kubelet-arg                 = concat(local.kubelet_arg, v.kubelet_args, var.k3s_global_kubelet_args, var.k3s_control_plane_kubelet_args)
+
       kube-apiserver-arg          = local.kube_apiserver_arg
       kube-controller-manager-arg = local.kube_controller_manager_arg
       flannel-iface               = local.flannel_iface

@@ -1,0 +1,4 @@
+apiVersion: v2
+name: monitoring
+description: Helm chart for deploying the monitoring component of the example-webapp
+version: 0.0.1

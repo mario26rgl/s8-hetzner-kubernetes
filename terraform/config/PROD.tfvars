@@ -5,30 +5,57 @@ use_control_plane_lb                     = true
 control_plane_lb_enable_public_interface = false # Forward cluster API traffic through Bastion
 automatically_upgrade_os                 = false # Development environment
 cluster_name                             = "s8-hetzner"
-cni_plugin                               = "cilium"
-disable_kube_proxy                       = true # We use Cilium
-load_balancer_location                   = "hel1"
-load_balancer_type                       = "lb11"
-load_balancer_algorithm_type             = "round_robin"
-allow_scheduling_on_control_plane        = false
-enable_metrics_server                    = true
-cluster_ipv4_cidr                        = "10.42.0.0/16"
-service_ipv4_cidr                        = "10.43.0.0/16"
-enable_argocd                            = true
-argocd_ingress_hostname                  = "argocd.s8-hetzner.online"
-enable_cert_manager                      = true
-acme_email                               = "mario_constantin1234@proton.me"
-issuer_environment                       = "staging"
-argocd_github_repo_url                   = "https://github.com/mario26rgl/s8-hetzner-kubernetes"
-argocd_github_username                   = "mario26rgl"
-cilium_version                           = "1.19.2"
-enable_poc_hybrid_aws                    = true
-enable_local_storage = true
-# cilium_merge_values = "ipv4NativeRoutingCIDR: \"10.0.0.0/8\"\n"
-install_k3s_version = "v1.35.4+k3s1"
-cilium_hubble_enabled = true
-enable_wireguard = true
 
+# Cluster Networking
+cni_plugin         = "cilium"
+disable_kube_proxy = true # We use Cilium
+cluster_ipv4_cidr  = "10.42.0.0/16"
+service_ipv4_cidr  = "10.43.0.0/16"
+
+# Ingress
+load_balancer_location       = "hel1"
+load_balancer_type           = "lb11"
+load_balancer_algorithm_type = "round_robin"
+
+# Add-ons
+enable_metrics_server   = true
+enable_argocd           = true
+enable_cert_manager     = true
+enable_external_secrets = "true"
+
+# ArgoCD configuration
+argocd_ingress_hostname = "argo.s8-hetzner.online"
+argocd_github_repo_url  = "https://github.com/mario26rgl/s8-hetzner-kubernetes"
+argocd_apps_path        = "kubernetes/apps"
+argocd_github_username  = "mario26rgl"
+
+allow_scheduling_on_control_plane = false
+
+# Cert-Manager configuration
+acme_email         = "mario_constantin1234@proton.me"
+issuer_environment = "staging"
+
+# Cilium configuration
+cilium_version             = "1.19.2"
+cilium_hubble_enabled      = true
+enable_wireguard           = true
+hubble_ingress_hostname    = "hubble.s8-hetzner.online"
+cilium_mtls_enabled        = false
+cilium_routing_mode        = "native"
+cilium_clustermesh_enabled = false
+
+# POC Hybrid AWS-Hetzner
+enable_poc_hybrid_aws = false
+enable_local_storage  = false
+
+# ESO configuration
+external_secrets_version = "v2.4.1"
+
+# K3s configuration
+install_k3s_version         = "v1.35.4+k3s1"
+k3s_masquerade_as_aws_nodes = true
+
+# Firewall rules
 extra_firewall_rules = [
   {
     description     = "Allow Outbound Cilium Cluster Mesh Communication",
