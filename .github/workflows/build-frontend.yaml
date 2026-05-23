@@ -1,0 +1,47 @@
+name: Build and Push Frontend Container
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - code/front-end/**
+      - .github/workflows/build-frontend.yaml
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: front-end
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build frontend binary
+        run: |
+          cd code/front-end
+          CGO_ENABLED=0 GOOS=linux go build -o frontApp ./cmd/web
+      
+      - name: Build and push Frontend Container
+        uses: macbre/push-to-ghcr@master
+        with:
+          image_name: ${{ env.IMAGE_NAME }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          dockerfile: ./code/front-end/front.dockerfile
+          context: ./code/front-end
+          image_tag: ${{ github.sha }}
+      
+      - name: Update Helm chart with new Docker image tag
+        run: |
+          sed -i "s|image: ghcr.io/mario26rgl/front-end:.*|image: ghcr.io/mario26rgl/front-end:${{ github.sha }}|" \
+            kubernetes/apps/frontend.yaml
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add kubernetes/apps/frontend.yaml
+          git commit -m "chore: update frontend image tag to ${{ github.sha }}"
+          git push origin main

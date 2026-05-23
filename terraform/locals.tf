@@ -811,9 +811,6 @@ env:
   HCLOUD_LOAD_BALANCERS_DISABLE_PRIVATE_INGRESS:
     value: "true"
 # Use host network to avoid circular dependency with CNI
-nodeSelector:
-  kubernetes.io/os: linux
-  node-role.kubernetes.io/control-plane: "true"
 additionalTolerations:
   - key: node-role.kubernetes.io/control-plane
     operator: Exists
