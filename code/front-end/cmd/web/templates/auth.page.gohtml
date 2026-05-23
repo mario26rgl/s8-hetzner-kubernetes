@@ -128,7 +128,7 @@
     let sent = document.getElementById("payload");
     let received = document.getElementById("received");
     let tokenPreview = document.getElementById("tokenPreview");
-    const brokerBaseUrl = `http://localhost:8080`;
+    const brokerBaseUrl = `http://broker-service.broker-service.svc.cluster.local:8080`;
 
     function getToken() {
         return localStorage.getItem(tokenKey) || "";
