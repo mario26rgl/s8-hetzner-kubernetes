@@ -9,13 +9,13 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/front-end
+  IMAGE_NAME: front-end
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     steps:
@@ -30,7 +30,7 @@ jobs:
       - name: Build and push Frontend Container
         uses: macbre/push-to-ghcr@master
         with:
-          image_name: ${{ github.repository }}
+          image_name: ${{ env.IMAGE_NAME }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           dockerfile: ./code/front-end/front.dockerfile
           context: ./code/front-end

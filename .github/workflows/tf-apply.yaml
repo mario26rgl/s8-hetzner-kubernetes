@@ -30,7 +30,7 @@ jobs:
     name: Terraform Apply
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     defaults:
       run:
         working-directory: terraform
@@ -94,7 +94,7 @@ jobs:
 
       - name: Terraform Apply (fresh fallback)
         if: steps.resolve.outputs.plan_file == ''
-        run: terraform apply -auto-approve -var-file="../config/PROD.tfvars"
+        run: terraform apply -auto-approve -var-file="./config/PROD.tfvars"
 
       - name: Cleanup plan artifact from S3
         if: always() && steps.resolve.outputs.plan_file != ''
