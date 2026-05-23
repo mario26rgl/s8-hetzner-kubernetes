@@ -30,7 +30,7 @@ jobs:
       - name: Build and push Frontend Container
         uses: macbre/push-to-ghcr@master
         with:
-          image_name: ${{ env.IMAGE_NAME }}
+          image_name: mario26rgl/${{ env.IMAGE_NAME }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           dockerfile: ./code/front-end/front.dockerfile
           context: ./code/front-end
