@@ -1,13 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"listener-service/event"
 	"log"
 	"math"
+	"net/http"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
+
+const metricsPort = "2112"
 
 func main() {
 	// connect to rabbitmq
@@ -19,6 +24,18 @@ func main() {
 
 	// start listening for messages
 	log.Println("Listening for and consuming RMQ messages...")
+
+	go func() {
+		log.Printf("Starting listener metrics endpoint on port %s\n", metricsPort)
+		metricsServer := &http.Server{
+			Addr:    fmt.Sprintf(":%s", metricsPort),
+			Handler: promhttp.Handler(),
+		}
+
+		if err := metricsServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Panic(err)
+		}
+	}()
 
 	// create consumer
 	consumer, err := event.NewConsumer(conn)

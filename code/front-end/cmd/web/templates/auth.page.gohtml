@@ -1,0 +1,424 @@
+{{template "base" .}}
+
+{{define "content" }}
+    <div class="container py-5">
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-10">
+                <div class="p-4 p-md-5 rounded-4 border bg-body-tertiary shadow-sm">
+                    <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center">
+                        <div>
+                            <p class="text-uppercase text-muted mb-2 small">Microservices PoC</p>
+                            <h1 class="display-6 mb-2">Sign up, sign in, and check access from the broker</h1>
+                            <p class="text-muted mb-0">The frontend talks HTTP to the broker, and the broker coordinates auth and token verification.</p>
+                        </div>
+                        <div class="text-md-end">
+                            <div class="small text-muted mb-1">Stored token</div>
+                            <code id="tokenPreview" class="d-block p-2 rounded bg-dark text-light">No token yet</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <h2 class="h4 mb-3">Create account</h2>
+                        <form id="signupForm" class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">First name</label>
+                                <input id="signupFirstName" class="form-control" type="text" name="first_name" placeholder="Jane">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Last name</label>
+                                <input id="signupLastName" class="form-control" type="text" name="last_name" placeholder="Doe">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Email</label>
+                                <input id="signupEmail" class="form-control" type="email" name="email" placeholder="jane@example.com" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Password</label>
+                                <input id="signupPassword" class="form-control" type="password" name="password" placeholder="Choose a password" required>
+                            </div>
+                            <div class="col-12 d-flex gap-2">
+                                <button class="btn btn-primary" type="submit">Sign up</button>
+                                <button id="fillDemoSignup" class="btn btn-outline-secondary" type="button">Fill demo data</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <h2 class="h4 mb-3">Sign in</h2>
+                        <form id="signinForm" class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Email</label>
+                                <input id="signinEmail" class="form-control" type="email" name="email" placeholder="jane@example.com" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Password</label>
+                                <input id="signinPassword" class="form-control" type="password" name="password" placeholder="Your password" required>
+                            </div>
+                            <div class="col-12 d-flex gap-2 flex-wrap">
+                                <button class="btn btn-dark" type="submit">Sign in</button>
+                                <button id="checkAccessBtn" class="btn btn-outline-success" type="button">Check access</button>
+                                <button id="clearTokenBtn" class="btn btn-outline-danger" type="button">Clear token</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <h3 class="h5">Sent</h3>
+                                <pre id="payload" class="p-3 rounded bg-light border mb-0"><span class="text-muted">Nothing sent yet...</span></pre>
+                            </div>
+                            <div class="col-md-6">
+                                <h3 class="h5">Received</h3>
+                                <pre id="received" class="p-3 rounded bg-light border mb-0"><span class="text-muted">Nothing received yet...</span></pre>
+                            </div>
+                        </div>
+                        <div id="output" class="mt-4 alert alert-secondary mb-0">Output shows here...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <h3 class="h5">Service smoke tests</h3>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a id="brokerBtn" class="btn btn-outline-secondary" href="javascript:void(0)">Test Broker</a>
+                            <a id="authBrokerBtn" class="btn btn-outline-secondary" href="javascript:void(0)">Test Auth</a>
+                            <a id="logBtn" class="btn btn-outline-secondary" href="javascript:void(0)">Test Log</a>
+                            <a id="logGBtn" class="btn btn-outline-secondary" href="javascript:void(0)">Test Log (gRPC)</a>
+                            <a id="mailBtn" class="btn btn-outline-secondary" href="javascript:void(0)">Test Mail</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{{end}}
+
+{{define "js"}}
+    <script>
+    const tokenKey = "authToken";
+
+    let signupForm = document.getElementById("signupForm");
+    let signinForm = document.getElementById("signinForm");
+    let fillDemoSignup = document.getElementById("fillDemoSignup");
+    let checkAccessBtn = document.getElementById("checkAccessBtn");
+    let clearTokenBtn = document.getElementById("clearTokenBtn");
+    let brokerBtn = document.getElementById("brokerBtn");
+    let authBrokerBtn = document.getElementById("authBrokerBtn");
+    let logBtn = document.getElementById("logBtn");
+    let logGBtn = document.getElementById("logGBtn");
+    let mailBtn = document.getElementById("mailBtn");
+    let output = document.getElementById("output");
+    let sent = document.getElementById("payload");
+    let received = document.getElementById("received");
+    let tokenPreview = document.getElementById("tokenPreview");
+    const brokerBaseUrl = `http://localhost:8080`;
+
+    function getToken() {
+        return localStorage.getItem(tokenKey) || "";
+    }
+
+    function setToken(token) {
+        if (!token) {
+            localStorage.removeItem(tokenKey);
+            tokenPreview.innerText = "No token yet";
+            return;
+        }
+
+        localStorage.setItem(tokenKey, token);
+        compactToken = token.substring(0, 7) + "...";
+        tokenPreview.innerText = compactToken;
+    }
+
+    function updateResponse(payload, data) {
+        sent.innerHTML = JSON.stringify(payload, undefined, 4);
+        received.innerHTML = JSON.stringify(data, undefined, 4);
+        if (data.error) {
+            output.innerHTML = `<strong>Error:</strong> ${data.message}`;
+        } else {
+            output.innerHTML = `<strong>Success:</strong> ${data.message}`;
+        }
+    }
+
+    setToken(getToken());
+
+    fillDemoSignup.addEventListener("click", function() {
+        document.getElementById("signupFirstName").value = "Jane";
+        document.getElementById("signupLastName").value = "Doe";
+        document.getElementById("signupEmail").value = "jane@example.com";
+        document.getElementById("signupPassword").value = "verysecret1";
+    });
+
+    signupForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const payload = {
+            action: "signup",
+            signup: {
+                first_name: document.getElementById("signupFirstName").value,
+                last_name: document.getElementById("signupLastName").value,
+                email: document.getElementById("signupEmail").value,
+                password: document.getElementById("signupPassword").value,
+            }
+        };
+
+        fetch(`${brokerBaseUrl}/handle`, {
+            method: "POST",
+            body: JSON.stringify(payload),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
+        .then((response) => response.json())
+        .then((data) => {
+            updateResponse(payload, data);
+            if (!data.error && data.data && data.data.token) {
+                setToken(data.data.token);
+            }
+        })
+        .catch((error) => {
+            output.innerHTML = "<br><br>Error: " + error;
+        });
+    });
+
+    signinForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const payload = {
+            action: "auth",
+            auth: {
+                email: document.getElementById("signinEmail").value,
+                password: document.getElementById("signinPassword").value,
+            }
+        };
+
+        fetch(`${brokerBaseUrl}/handle`, {
+            method: "POST",
+            body: JSON.stringify(payload),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
+        .then((response) => response.json())
+        .then((data) => {
+            updateResponse(payload, data);
+            if (!data.error && data.data && data.data.token) {
+                setToken(data.data.token);
+            }
+        })
+        .catch((error) => {
+            output.innerHTML = "<br><br>Error: " + error;
+        });
+    });
+
+    checkAccessBtn.addEventListener("click", function() {
+        const token = getToken();
+        if (!token) {
+            output.innerHTML = "<strong>Error:</strong> No token stored yet";
+            return;
+        }
+
+        const payload = {
+            action: "verify",
+            verify: {
+                token: token,
+            }
+        };
+
+        fetch(`${brokerBaseUrl}/handle`, {
+            method: "POST",
+            body: JSON.stringify(payload),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
+        .then((response) => response.json())
+        .then((data) => {
+            updateResponse(payload, data);
+        })
+        .catch((error) => {
+            output.innerHTML = "<br><br>Error: " + error;
+        });
+    });
+
+    clearTokenBtn.addEventListener("click", function() {
+        setToken("");
+        output.innerHTML = "<strong>Token cleared.</strong>";
+    });
+
+    brokerBtn.addEventListener("click", function() {
+        const body = {
+            method: 'POST',
+        }
+        fetch(`${brokerBaseUrl}/`, body)
+        .then((response) => response.json())
+        .then((data) => {
+            sent.innerHTML = "empty post request";
+            received.innerHTML = JSON.stringify(data, undefined, 4);
+            if (data.error) {
+                console.log(data.message);
+            } else {
+                output.innerHTML += `<br><strong>Response from broker service</strong>: ${data.message}`;
+            }
+        })
+        .catch((error) => {
+            output.innerHTML += "<br><br>Error: " + error;
+        }
+        )
+    })
+    authBrokerBtn.addEventListener("click", function() {
+        const payload = {
+            action: "auth",
+            auth: {
+                email: "admin@example.com",
+                password: "verysecret1"
+            }
+        }
+
+        const headers = new Headers();
+        headers.append("Content-Type", "application/json");
+
+        const body = {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: headers,
+        }
+
+        fetch(`${brokerBaseUrl}/handle`, body)
+        .then((response) => response.json())
+        .then((data) => {
+            sent.innerHTML = JSON.stringify(payload, undefined, 4);
+            received.innerHTML = JSON.stringify(data, undefined, 4);
+            if (data.error) {
+                output.innerHTML += `<br><strong>Error from broker service</strong>: ${data.message}`;
+            } else {
+                output.innerHTML += `<br><strong>Response from broker service</strong>: ${data.message}`;
+            }
+        })
+        .catch((error) => {
+            output.innerHTML += "<br><br>Error: " + error;
+        }
+        )
+    })
+    logBtn.addEventListener("click", function() {
+        const payload = {
+            action: "log",
+            log: {
+                name: "event",
+                data: "This is a test log entry"
+            }
+        }
+
+        const headers = new Headers();
+        headers.append("Content-Type", "application/json");
+
+        const body = {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: headers,
+        }
+
+        fetch(`${brokerBaseUrl}/handle`, body)
+        .then((response) => response.json())
+        .then((data) => {
+            sent.innerHTML = JSON.stringify(payload, undefined, 4);
+            received.innerHTML = JSON.stringify(data, undefined, 4);
+            if (data.error) {
+                output.innerHTML += `<br><strong>Error from broker service</strong>: ${data.message}`;
+            } else {
+                output.innerHTML += `<br><strong>Response from broker service</strong>: ${data.message}`;
+            }
+        })
+        .catch((error) => {
+            output.innerHTML += "<br><br>Error: " + error;
+        }
+        )
+    })
+    logGBtn.addEventListener("click", function() {
+        const payload = {
+            action: "log-grpc",
+            log: {
+                name: "event",
+                data: "This is a test log entry using gRPC"
+            }
+        }
+
+        const headers = new Headers();
+        headers.append("Content-Type", "application/json");
+
+        const body = {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: headers,
+        }
+
+        fetch(`${brokerBaseUrl}/log-grpc`, body)
+        .then((response) => response.json())
+        .then((data) => {
+            sent.innerHTML = JSON.stringify(payload, undefined, 4);
+            received.innerHTML = JSON.stringify(data, undefined, 4);
+            if (data.error) {
+                output.innerHTML += `<br><strong>Error from broker service</strong>: ${data.message}`;
+            } else {
+                output.innerHTML += `<br><strong>Response from broker service</strong>: ${data.message}`;
+            }
+        })
+        .catch((error) => {
+            output.innerHTML += "<br><br>Error: " + error;
+        }
+        )
+    })
+    mailBtn.addEventListener("click", function() {
+        const payload = {
+            action: "mail",
+            mail: {
+                from: "admin@example.com",
+                to: "user@example.com",
+                subject: "Test Mail",
+                message: "This is a test mail entry"
+            }
+        }
+
+        const headers = new Headers();
+        headers.append("Content-Type", "application/json");
+
+        const body = {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: headers,
+        }
+
+        fetch(`${brokerBaseUrl}/handle`, body)
+        .then((response) => response.json())
+        .then((data) => {
+            sent.innerHTML = JSON.stringify(payload, undefined, 4);
+            received.innerHTML = JSON.stringify(data, undefined, 4);
+            if (data.error) {
+                output.innerHTML += `<br><strong>Error from broker service</strong>: ${data.message}`;
+            } else {
+                output.innerHTML += `<br><strong>Response from broker service</strong>: ${data.message}`;
+            }
+        })
+        .catch((error) => {
+            output.innerHTML += "<br><br>Error: " + error;
+        }
+        )
+    })
+    </script>
+{{end}}
