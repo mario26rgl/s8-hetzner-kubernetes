@@ -1,0 +1,16 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: {{ .Values.name }}-allow-all
+  namespace: {{ .Values.namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app: {{ .Values.name }}
+  ingress:
+    - fromEntities:
+        - all
+      toPorts:
+        - ports:
+            - port: "{{ .Values.port }}"
+              protocol: TCP

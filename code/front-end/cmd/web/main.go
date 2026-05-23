@@ -6,10 +6,18 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		render(w, "auth.page.gohtml")
+	})
+
+	http.Handle("/metrics", promhttp.Handler())
+
+	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
 		render(w, "test.page.gohtml")
 	})
 

@@ -21,15 +21,28 @@ type jsonResponse struct {
 }
 
 type RequestPayload struct {
-	Action string      `json:"action"`
-	Auth   AuthPayload `json:"auth,omitempty"`
-	Log    LogPayload  `json:"log,omitempty"`
-	Mail   MailPayload `json:"mail,omitempty"`
+	Action string        `json:"action"`
+	Auth   AuthPayload   `json:"auth,omitempty"`
+	Signup SignupPayload `json:"signup,omitempty"`
+	Verify VerifyPayload `json:"verify,omitempty"`
+	Log    LogPayload    `json:"log,omitempty"`
+	Mail   MailPayload   `json:"mail,omitempty"`
 }
 
 type AuthPayload struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type SignupPayload struct {
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+}
+
+type VerifyPayload struct {
+	Token string `json:"token"`
 }
 
 type LogPayload struct {
@@ -65,6 +78,10 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 	switch requestPayload.Action {
 	case "auth":
 		app.authenticate(w, requestPayload.Auth)
+	case "signup":
+		app.signUp(w, requestPayload.Signup)
+	case "verify":
+		app.verifyToken(w, requestPayload.Verify)
 	case "log":
 		app.logEventViaRabbit(w, requestPayload.Log)
 	case "mail":
@@ -120,6 +137,100 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 	payload.Data = jsonFromAuthService.Data
 	app.writeJSON(w, http.StatusOK, payload)
 
+}
+
+func (app *Config) signUp(w http.ResponseWriter, s SignupPayload) {
+	jsonData, _ := json.MarshalIndent(s, "", "\t")
+
+	request, err := http.NewRequest("POST", "http://auth-service/signup", bytes.NewBuffer(jsonData))
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	request.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode == http.StatusConflict {
+		app.errorJSON(w, errors.New("email already registered"), http.StatusConflict)
+		return
+	} else if response.StatusCode != http.StatusCreated {
+		app.errorJSON(w, errors.New("error calling auth service"))
+		return
+	}
+
+	var jsonFromAuthService jsonResponse
+
+	err = json.NewDecoder(response.Body).Decode(&jsonFromAuthService)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	if jsonFromAuthService.Error {
+		app.errorJSON(w, errors.New(jsonFromAuthService.Message), http.StatusBadRequest)
+		return
+	}
+
+	var payload jsonResponse
+	payload.Error = false
+	payload.Message = "Signed up!"
+	payload.Data = jsonFromAuthService.Data
+	app.writeJSON(w, http.StatusCreated, payload)
+}
+
+func (app *Config) verifyToken(w http.ResponseWriter, v VerifyPayload) {
+	jsonData, _ := json.MarshalIndent(v, "", "\t")
+
+	request, err := http.NewRequest("POST", "http://auth-service/verify", bytes.NewBuffer(jsonData))
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	request.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode == http.StatusUnauthorized {
+		app.errorJSON(w, errors.New("invalid token"), http.StatusUnauthorized)
+		return
+	} else if response.StatusCode != http.StatusAccepted {
+		app.errorJSON(w, errors.New("error calling auth service"))
+		return
+	}
+
+	var jsonFromAuthService jsonResponse
+
+	err = json.NewDecoder(response.Body).Decode(&jsonFromAuthService)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	if jsonFromAuthService.Error {
+		app.errorJSON(w, errors.New(jsonFromAuthService.Message), http.StatusUnauthorized)
+		return
+	}
+
+	var payload jsonResponse
+	payload.Error = false
+	payload.Message = "Token verified!"
+	payload.Data = jsonFromAuthService.Data
+	app.writeJSON(w, http.StatusAccepted, payload)
 }
 
 func (app *Config) logItem(w http.ResponseWriter, l LogPayload) {
