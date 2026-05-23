@@ -18,7 +18,7 @@ jobs:
       contents: write
       packages: write
     concurrency:
-      group: ghcr-manifest-updates
+      group: ghcr-manifest-updates-broker-service
       cancel-in-progress: false
 
     steps:
@@ -41,6 +41,22 @@ jobs:
           dockerfile: ./code/broker-service/broker.dockerfile
           context: ./code/broker-service
           image_tag: ${{ github.sha }}
+
+  update-manifest:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    permissions:
+      contents: read
+    concurrency:
+      group: ghcr-manifest-updates
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Sync latest main (pick up other workflows' commits)
+        run: git pull --rebase origin main
 
       - name: Update Helm chart with new Docker image tag
         run: |
