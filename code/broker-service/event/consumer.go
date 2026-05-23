@@ -6,6 +6,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"os"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -111,8 +112,12 @@ func handlePayload(payload Payload) {
 func logEvent(entry Payload) error {
 	// Implementation for logging item
 	jsonData, _ := json.MarshalIndent(entry, "", "\t")
+	loggerServiceURL := os.Getenv("LOGGER_SERVICE_URL")
+	if loggerServiceURL == "" {
+		loggerServiceURL = "http://logger-service.logger-service.svc.cluster.local"
+	}
 
-	request, err := http.NewRequest("POST", "http://logger-service/log", bytes.NewBuffer(jsonData))
+	request, err := http.NewRequest("POST", loggerServiceURL+"/log", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
 	}

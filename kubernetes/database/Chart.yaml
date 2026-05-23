@@ -1,0 +1,4 @@
+apiVersion: v2
+name: database
+description: Generic Helm chart for stateful infrastructure services
+version: 0.1.0

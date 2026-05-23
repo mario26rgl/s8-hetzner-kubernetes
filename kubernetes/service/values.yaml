@@ -3,3 +3,5 @@ namespace: service
 image: ghcr.io/your-org/service:latest
 replicas: 1
 port: 80
+extraServicePorts: []
+env: {}

@@ -1,0 +1,47 @@
+name: Build and Push Auth Service Container
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - code/auth-service/**
+      - .github/workflows/build-auth-service.yaml
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: auth-service
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build auth binary
+        run: |
+          cd code/auth-service
+          CGO_ENABLED=0 GOOS=linux go build -o authApp ./cmd/api
+
+      - name: Build and push Auth Service Container
+        uses: macbre/push-to-ghcr@master
+        with:
+          image_name: mario26rgl/${{ env.IMAGE_NAME }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          dockerfile: ./code/auth-service/auth.dockerfile
+          context: ./code/auth-service
+          image_tag: ${{ github.sha }}
+
+      - name: Update Helm chart with new Docker image tag
+        run: |
+          sed -i "s|image: ghcr.io/mario26rgl/auth-service:.*|image: ghcr.io/mario26rgl/auth-service:${{ github.sha }}|" \
+            kubernetes/apps/auth.yaml
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add kubernetes/apps/auth.yaml
+          git commit -m "chore: update auth-service image tag to ${{ github.sha }}"
+          git push origin main

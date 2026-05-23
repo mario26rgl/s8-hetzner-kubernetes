@@ -1,11 +1,12 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ .Values.name }}
   namespace: {{ .Values.namespace }}
   labels:
     app: {{ .Values.name }}
 spec:
+  serviceName: {{ .Values.name }}
   replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
@@ -27,5 +28,17 @@ spec:
 {{- end }}
 {{- end }}
           ports:
-            - name: http
-              containerPort: {{ .Values.port }}
+            - name: db
+              containerPort: {{ .Values.containerPort }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}

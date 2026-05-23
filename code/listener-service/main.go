@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -27,9 +28,11 @@ func main() {
 
 	go func() {
 		log.Printf("Starting listener metrics endpoint on port %s\n", metricsPort)
+		mux := http.NewServeMux()
+		mux.Handle("/metrics", promhttp.Handler())
 		metricsServer := &http.Server{
 			Addr:    fmt.Sprintf(":%s", metricsPort),
-			Handler: promhttp.Handler(),
+			Handler: mux,
 		}
 
 		if err := metricsServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -54,9 +57,13 @@ func connect() (*amqp.Connection, error) {
 	var counts = 0
 	var backOff = 1 * time.Second
 	var connection *amqp.Connection
+	rabbitMQURL := os.Getenv("RABBITMQ_URL")
+	if rabbitMQURL == "" {
+		rabbitMQURL = "amqp://user:password@rabbitmq.rabbitmq.svc.cluster.local:5672/"
+	}
 
 	for {
-		c, err := amqp.Dial("amqp://user:password@rabbitmq:5672/")
+		c, err := amqp.Dial(rabbitMQURL)
 		if err != nil {
 			log.Printf("RabbitMQ not yet ready, retrying in %v seconds\n", backOff.Seconds())
 			counts++

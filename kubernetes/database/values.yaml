@@ -1,0 +1,12 @@
+name: database
+namespace: database
+image: postgres:14.2
+replicas: 1
+servicePort: 5432
+containerPort: 5432
+extraServicePorts: []
+env: {}
+persistence:
+  enabled: true
+  size: 5Gi
+  mountPath: /var/lib/data

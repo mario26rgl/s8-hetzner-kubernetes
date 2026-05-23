@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rabbitmq
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/mario26rgl/s8-hetzner-kubernetes.git'
+    targetRevision: main
+    path: kubernetes/database
+    helm:
+      valuesObject:
+        name: rabbitmq
+        namespace: rabbitmq
+        image: rabbitmq:3.9.14-management-alpine
+        replicas: 1
+        servicePort: 5672
+        containerPort: 5672
+        extraServicePorts:
+          - name: management
+            port: 15672
+            targetPort: 15672
+        env:
+          RABBITMQ_DEFAULT_USER: user
+          RABBITMQ_DEFAULT_PASS: password
+        persistence:
+          enabled: true
+          size: 5Gi
+          mountPath: /var/lib/rabbitmq
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rabbitmq
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true

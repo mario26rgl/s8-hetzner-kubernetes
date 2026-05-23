@@ -205,8 +205,12 @@ func (app *Config) logRequest(name, data string) error {
 	entry.Data = data
 
 	jsonData, _ := json.MarshalIndent(entry, "", "\t")
+	loggerURL := os.Getenv("LOGGER_SERVICE_URL")
+	if loggerURL == "" {
+		loggerURL = "http://logger-service.logger-service.svc.cluster.local"
+	}
 
-	request, err := http.NewRequest("POST", "http://logger-service/log", bytes.NewBuffer(jsonData))
+	request, err := http.NewRequest("POST", loggerURL+"/log", bytes.NewBuffer(jsonData))
 	if err != nil {
 		log.Printf("Error creating log request: %v", err)
 		return err

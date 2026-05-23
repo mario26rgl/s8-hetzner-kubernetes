@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: broker-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/mario26rgl/s8-hetzner-kubernetes.git'
+    targetRevision: main
+    path: kubernetes/service
+    helm:
+      valuesObject:
+        name: broker-service
+        namespace: broker-service
+        image: ghcr.io/mario26rgl/broker-service:latest
+        replicas: 1
+        port: 80
+        env:
+          AUTH_SERVICE_URL: http://auth-service.auth-service.svc.cluster.local
+          LOGGER_SERVICE_URL: http://logger-service.logger-service.svc.cluster.local
+          LOGGER_SERVICE_GRPC_ADDR: logger-service.logger-service.svc.cluster.local:50051
+          MAIL_SERVICE_URL: http://mail-service.mail-service.svc.cluster.local
+          RABBITMQ_URL: amqp://user:password@rabbitmq.rabbitmq.svc.cluster.local:5672/
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: broker-service
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true
