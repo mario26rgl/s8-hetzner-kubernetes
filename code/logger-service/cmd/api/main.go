@@ -18,7 +18,7 @@ const (
 	webPort  = "80"
 	rpcPort  = "5001"
 	mongoURL = "mongodb://mongo:27017"
-	gRpcPort = "50001"
+	gRpcPort = "50051"
 )
 
 var client *mongo.Client
@@ -55,6 +55,8 @@ func main() {
 
 	// Start RPC server in a separate goroutine
 	go app.rpcListen()
+
+	go app.gRPCListen()
 
 	log.Printf("Starting logger service on port %s\n", webPort)
 

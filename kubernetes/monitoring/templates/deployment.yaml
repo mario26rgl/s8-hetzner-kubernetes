@@ -13,6 +13,13 @@ spec:
         tier: monitoring
     spec:
       serviceAccountName: prometheus-sa
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+      nodeSelector:
+        kubernetes.io/os: linux
+        node-role.kubernetes.io/control-plane: "true"
       containers:
         - name: prometheus
           image: prom/prometheus:latest

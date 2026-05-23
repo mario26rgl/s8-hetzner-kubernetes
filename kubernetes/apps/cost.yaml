@@ -13,6 +13,13 @@ spec:
       helm:
         valuesObject:
           opencost:
+            nodeSelector:
+              kubernetes.io/os: linux
+              node-role.kubernetes.io/control-plane: "true"
+            tolerations:
+              - key: node-role.kubernetes.io/control-plane
+                operator: Exists
+                effect: NoSchedule
             exporter:
               extraEnv:
                 USE_CSV_PROVIDER: "true"

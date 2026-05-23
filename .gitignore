@@ -1,6 +1,9 @@
 # Local volumes
 code/project/db-data
 
+# Local Apps
+*App
+
 # Backup files
 .bak
 

@@ -19,6 +19,13 @@ spec:
         grafana:
           enabled: true
           defaultDashboardsEnabled: true
+          nodeSelector:
+            kubernetes.io/os: linux
+            node-role.kubernetes.io/control-plane: "true"
+          tolerations:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+              effect: NoSchedule
           ingress:
             enabled: true
             ingressClassName: traefik
@@ -43,11 +50,26 @@ spec:
               url: http://monitoring-prometheus.monitoring.svc:9090
         alertmanager:
           enabled: true
+          alertmanagerSpec:
+            nodeSelector:
+              kubernetes.io/os: linux
+              node-role.kubernetes.io/control-plane: "true"
+            tolerations:
+              - key: node-role.kubernetes.io/control-plane
+                operator: Exists
+                effect: NoSchedule
           ingress:
             enabled: false
         prometheus:
           enabled: true
           prometheusSpec:
+            nodeSelector:
+              kubernetes.io/os: linux
+              node-role.kubernetes.io/control-plane: "true"
+            tolerations:
+              - key: node-role.kubernetes.io/control-plane
+                operator: Exists
+                effect: NoSchedule
             retention: 15d
             serviceMonitorSelectorNilUsesHelmValues: false
             podMonitorSelectorNilUsesHelmValues: false
@@ -55,6 +77,22 @@ spec:
             serviceMonitorNamespaceSelector: {}
             podMonitorNamespaceSelector: {}
             ruleNamespaceSelector: {}
+        prometheusOperator:
+          nodeSelector:
+            kubernetes.io/os: linux
+            node-role.kubernetes.io/control-plane: "true"
+          tolerations:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+              effect: NoSchedule
+        kube-state-metrics:
+          nodeSelector:
+            kubernetes.io/os: linux
+            node-role.kubernetes.io/control-plane: "true"
+          tolerations:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+              effect: NoSchedule
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
