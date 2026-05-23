@@ -22,9 +22,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Sync repository
-        run: git pull --rebase origin main
-
       - name: Build frontend binary
         run: |
           cd code/front-end
@@ -44,6 +41,9 @@ jobs:
     needs: build-and-push
     permissions:
       contents: write
+    concurrency:
+      group: update-manifest
+      cancel-in-progress: false
 
     steps:
       - name: Checkout repository
