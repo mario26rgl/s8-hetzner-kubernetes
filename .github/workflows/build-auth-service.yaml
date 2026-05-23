@@ -17,9 +17,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-    concurrency:
-      group: ghcr-manifest-updates-auth-service
-      cancel-in-progress: false
 
     steps:
       - name: Checkout repository
@@ -47,9 +44,6 @@ jobs:
     needs: build-and-push
     permissions:
       contents: write
-    concurrency:
-      group: ghcr-manifest-updates
-      cancel-in-progress: false
 
     steps:
       - name: Checkout repository
