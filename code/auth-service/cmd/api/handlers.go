@@ -125,24 +125,28 @@ func (app *Config) SignUp(w http.ResponseWriter, r *http.Request) {
 
 	newID, err := app.Models.User.Insert(newUser)
 	if err != nil {
+		log.Printf("create user failed: %+v", err)
 		app.errorJSON(w, errors.New("failed to create user"), http.StatusInternalServerError)
 		return
 	}
 
 	createdUser, err := app.Models.User.GetOne(newID)
 	if err != nil {
+		log.Printf("fetch user failed: %+v", err)
 		app.errorJSON(w, errors.New("failed to fetch created user"), http.StatusInternalServerError)
 		return
 	}
 
 	token, err := generateAuthToken(createdUser.ID)
 	if err != nil {
+		log.Printf("generate token failed: %+v", err)
 		app.errorJSON(w, errors.New("failed to generate token"), http.StatusInternalServerError)
 		return
 	}
 
 	err = app.logRequest("Auth log", fmt.Sprintf("User %s signed up successfully", createdUser.Email))
 	if err != nil {
+		log.Printf("log sign up failed: %+v", err)
 		app.errorJSON(w, errors.New("failed to log sign up"), http.StatusInternalServerError)
 		return
 	}
