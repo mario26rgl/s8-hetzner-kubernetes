@@ -128,7 +128,7 @@
     let sent = document.getElementById("payload");
     let received = document.getElementById("received");
     let tokenPreview = document.getElementById("tokenPreview");
-    const brokerBaseUrl = `http://broker-service.broker-service.svc.cluster.local`;
+    const apiBaseUrl = `/api`;
     
 
     function getToken() {
@@ -143,7 +143,7 @@
         }
 
         localStorage.setItem(tokenKey, token);
-        compactToken = token.substring(0, 7) + "...";
+        const compactToken = token.substring(0, 7) + "...";
         tokenPreview.innerText = compactToken;
     }
 
@@ -179,7 +179,7 @@
             }
         };
 
-        fetch(`${brokerBaseUrl}/handle`, {
+        fetch(`${apiBaseUrl}/handle`, {
             method: "POST",
             body: JSON.stringify(payload),
             headers: {
@@ -209,7 +209,7 @@
             }
         };
 
-        fetch(`${brokerBaseUrl}/handle`, {
+        fetch(`${apiBaseUrl}/handle`, {
             method: "POST",
             body: JSON.stringify(payload),
             headers: {
@@ -242,7 +242,7 @@
             }
         };
 
-        fetch(`${brokerBaseUrl}/handle`, {
+        fetch(`${apiBaseUrl}/handle`, {
             method: "POST",
             body: JSON.stringify(payload),
             headers: {
@@ -267,7 +267,7 @@
         const body = {
             method: 'POST',
         }
-        fetch(`${brokerBaseUrl}/`, body)
+        fetch(`${apiBaseUrl}/`, body)
         .then((response) => response.json())
         .then((data) => {
             sent.innerHTML = "empty post request";
@@ -301,7 +301,7 @@
             headers: headers,
         }
 
-        fetch(`${brokerBaseUrl}/handle`, body)
+        fetch(`${apiBaseUrl}/handle`, body)
         .then((response) => response.json())
         .then((data) => {
             sent.innerHTML = JSON.stringify(payload, undefined, 4);
@@ -335,7 +335,7 @@
             headers: headers,
         }
 
-        fetch(`${brokerBaseUrl}/handle`, body)
+        fetch(`${apiBaseUrl}/handle`, body)
         .then((response) => response.json())
         .then((data) => {
             sent.innerHTML = JSON.stringify(payload, undefined, 4);
@@ -369,7 +369,7 @@
             headers: headers,
         }
 
-        fetch(`${brokerBaseUrl}/log-grpc`, body)
+        fetch(`${apiBaseUrl}/log-grpc`, body)
         .then((response) => response.json())
         .then((data) => {
             sent.innerHTML = JSON.stringify(payload, undefined, 4);
@@ -405,7 +405,7 @@
             headers: headers,
         }
 
-        fetch(`${brokerBaseUrl}/handle`, body)
+        fetch(`${apiBaseUrl}/handle`, body)
         .then((response) => response.json())
         .then((data) => {
             sent.innerHTML = JSON.stringify(payload, undefined, 4);
