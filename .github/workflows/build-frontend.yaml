@@ -15,10 +15,10 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       packages: write
     concurrency:
-      group: ghcr-manifest-updates
+      group: ghcr-manifest-updates-frontend
       cancel-in-progress: false
 
     steps:
@@ -41,7 +41,23 @@ jobs:
           dockerfile: ./code/front-end/front.dockerfile
           context: ./code/front-end
           image_tag: ${{ github.sha }}
-      
+
+  update-manifest:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    permissions:
+      contents: write
+    concurrency:
+      group: ghcr-manifest-updates
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Sync latest main (pick up other workflows' commits)
+        run: git pull --rebase origin main
+
       - name: Update Helm chart with new Docker image tag
         run: |
           sed -i "s|image: ghcr.io/mario26rgl/front-end:.*|image: ghcr.io/mario26rgl/front-end:${{ github.sha }}|" \
