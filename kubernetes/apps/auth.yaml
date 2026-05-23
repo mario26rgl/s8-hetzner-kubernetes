@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: auth-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/mario26rgl/s8-hetzner-kubernetes.git'
+    targetRevision: main
+    path: kubernetes/service
+    helm:
+      valuesObject:
+        name: auth-service
+        namespace: auth-service
+        image: ghcr.io/mario26rgl/auth-service:latest
+        replicas: 1
+        port: 80
+        env:
+          DSN: host=postgres.postgres.svc.cluster.local user=postgres password=password dbname=users port=5432 sslmode=disable TimeZone=UTC connect_timeout=5
+          LOGGER_SERVICE_URL: http://logger-service.logger-service.svc.cluster.local
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: auth-service
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true

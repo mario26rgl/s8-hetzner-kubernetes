@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"os"
 	"time"
 
 	"google.golang.org/grpc"
@@ -57,6 +58,15 @@ type MailPayload struct {
 	Message string `json:"message"`
 }
 
+func getServiceURL(envKey, defaultValue string) string {
+	value := os.Getenv(envKey)
+	if value == "" {
+		return defaultValue
+	}
+
+	return value
+}
+
 func (app *Config) Broker(w http.ResponseWriter, r *http.Request) {
 	payload := jsonResponse{
 		Error:   false,
@@ -93,8 +103,9 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 
 func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 	jsonData, _ := json.MarshalIndent(a, "", "\t")
+	authServiceURL := getServiceURL("AUTH_SERVICE_URL", "http://auth-service.auth-service.svc.cluster.local")
 
-	request, err := http.NewRequest("POST", "http://auth-service/authenticate", bytes.NewBuffer(jsonData))
+	request, err := http.NewRequest("POST", authServiceURL+"/authenticate", bytes.NewBuffer(jsonData))
 	if err != nil {
 		app.errorJSON(w, err)
 		return
@@ -141,8 +152,9 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 
 func (app *Config) signUp(w http.ResponseWriter, s SignupPayload) {
 	jsonData, _ := json.MarshalIndent(s, "", "\t")
+	authServiceURL := getServiceURL("AUTH_SERVICE_URL", "http://auth-service.auth-service.svc.cluster.local")
 
-	request, err := http.NewRequest("POST", "http://auth-service/signup", bytes.NewBuffer(jsonData))
+	request, err := http.NewRequest("POST", authServiceURL+"/signup", bytes.NewBuffer(jsonData))
 	if err != nil {
 		app.errorJSON(w, err)
 		return
@@ -188,8 +200,9 @@ func (app *Config) signUp(w http.ResponseWriter, s SignupPayload) {
 
 func (app *Config) verifyToken(w http.ResponseWriter, v VerifyPayload) {
 	jsonData, _ := json.MarshalIndent(v, "", "\t")
+	authServiceURL := getServiceURL("AUTH_SERVICE_URL", "http://auth-service.auth-service.svc.cluster.local")
 
-	request, err := http.NewRequest("POST", "http://auth-service/verify", bytes.NewBuffer(jsonData))
+	request, err := http.NewRequest("POST", authServiceURL+"/verify", bytes.NewBuffer(jsonData))
 	if err != nil {
 		app.errorJSON(w, err)
 		return
@@ -236,8 +249,9 @@ func (app *Config) verifyToken(w http.ResponseWriter, v VerifyPayload) {
 func (app *Config) logItem(w http.ResponseWriter, l LogPayload) {
 	// Implementation for logging item
 	jsonData, _ := json.MarshalIndent(l, "", "\t")
+	loggerServiceURL := getServiceURL("LOGGER_SERVICE_URL", "http://logger-service.logger-service.svc.cluster.local")
 
-	request, err := http.NewRequest("POST", "http://logger-service/log", bytes.NewBuffer(jsonData))
+	request, err := http.NewRequest("POST", loggerServiceURL+"/log", bytes.NewBuffer(jsonData))
 	if err != nil {
 		app.errorJSON(w, err)
 		return
@@ -267,8 +281,9 @@ func (app *Config) logItem(w http.ResponseWriter, l LogPayload) {
 func (app *Config) sendMail(w http.ResponseWriter, m MailPayload) {
 	// Implementation for sending mail
 	jsonData, _ := json.MarshalIndent(m, "", "\t")
+	mailServiceURL := getServiceURL("MAIL_SERVICE_URL", "http://mail-service.mail-service.svc.cluster.local")
 
-	request, err := http.NewRequest("POST", "http://mail-service/send", bytes.NewBuffer(jsonData))
+	request, err := http.NewRequest("POST", mailServiceURL+"/send", bytes.NewBuffer(jsonData))
 	if err != nil {
 		app.errorJSON(w, err)
 		return
@@ -337,8 +352,9 @@ func (app *Config) logItemViaGRPC(w http.ResponseWriter, r *http.Request) {
 		app.errorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	loggerGRPCAddress := getServiceURL("LOGGER_SERVICE_GRPC_ADDR", "logger-service.logger-service.svc.cluster.local:50051")
 
-	conn, err := grpc.NewClient("logger-service:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(loggerGRPCAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		app.errorJSON(w, err)
 		return

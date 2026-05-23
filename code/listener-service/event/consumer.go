@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/rpc"
+	"os"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -112,8 +113,12 @@ func handlePayload(payload Payload) {
 func logEvent(entry Payload) error {
 	// Implementation for logging item
 	jsonData, _ := json.MarshalIndent(entry, "", "\t")
+	loggerServiceURL := os.Getenv("LOGGER_SERVICE_URL")
+	if loggerServiceURL == "" {
+		loggerServiceURL = "http://logger-service.logger-service.svc.cluster.local"
+	}
 
-	request, err := http.NewRequest("POST", "http://logger-service/log", bytes.NewBuffer(jsonData))
+	request, err := http.NewRequest("POST", loggerServiceURL+"/log", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
 	}
@@ -141,7 +146,12 @@ type RPCPayload struct {
 
 func logEventViaRPC(entry Payload) error {
 	// Implementation for logging item via RPC
-	client, err := rpc.Dial("tcp", "logger-service:5001")
+	loggerRPCAddress := os.Getenv("LOGGER_SERVICE_RPC_ADDR")
+	if loggerRPCAddress == "" {
+		loggerRPCAddress = "logger-service.logger-service.svc.cluster.local:5001"
+	}
+
+	client, err := rpc.Dial("tcp", loggerRPCAddress)
 	if err != nil {
 		return err
 	}

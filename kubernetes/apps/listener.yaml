@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: listener-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/mario26rgl/s8-hetzner-kubernetes.git'
+    targetRevision: main
+    path: kubernetes/service
+    helm:
+      valuesObject:
+        name: listener-service
+        namespace: listener-service
+        image: ghcr.io/mario26rgl/listener-service:latest
+        replicas: 1
+        port: 2112
+        env:
+          RABBITMQ_URL: amqp://user:password@rabbitmq.rabbitmq.svc.cluster.local:5672/
+          LOGGER_SERVICE_URL: http://logger-service.logger-service.svc.cluster.local
+          LOGGER_SERVICE_RPC_ADDR: logger-service.logger-service.svc.cluster.local:5001
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: listener-service
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true

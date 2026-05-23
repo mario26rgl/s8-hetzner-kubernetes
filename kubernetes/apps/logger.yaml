@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: logger-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/mario26rgl/s8-hetzner-kubernetes.git'
+    targetRevision: main
+    path: kubernetes/service
+    helm:
+      valuesObject:
+        name: logger-service
+        namespace: logger-service
+        image: ghcr.io/mario26rgl/logger-service:latest
+        replicas: 1
+        port: 80
+        extraServicePorts:
+          - name: rpc
+            port: 5001
+            targetPort: 5001
+          - name: grpc
+            port: 50051
+            targetPort: 50051
+        env:
+          MONGO_URL: mongodb://mongo.mongo.svc.cluster.local:27017
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: logger-service
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true

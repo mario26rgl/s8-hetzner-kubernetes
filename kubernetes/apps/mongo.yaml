@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mongo
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/mario26rgl/s8-hetzner-kubernetes.git'
+    targetRevision: main
+    path: kubernetes/database
+    helm:
+      valuesObject:
+        name: mongo
+        namespace: mongo
+        image: mongo:4.2.16-bionic
+        replicas: 1
+        servicePort: 27017
+        containerPort: 27017
+        env:
+          MONGO_INITDB_DATABASE: logs
+          MONGO_INITDB_ROOT_USERNAME: admin
+          MONGO_INITDB_ROOT_PASSWORD: password
+        persistence:
+          enabled: true
+          size: 5Gi
+          mountPath: /data/db
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mongo
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true

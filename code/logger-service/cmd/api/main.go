@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/rpc"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -15,10 +16,10 @@ import (
 )
 
 const (
-	webPort  = "80"
-	rpcPort  = "5001"
-	mongoURL = "mongodb://mongo:27017"
-	gRpcPort = "50051"
+	webPort         = "80"
+	rpcPort         = "5001"
+	defaultMongoURL = "mongodb://mongo.mongo.svc.cluster.local:27017"
+	gRpcPort        = "50051"
 )
 
 var client *mongo.Client
@@ -90,6 +91,11 @@ func (app *Config) rpcListen() {
 }
 
 func connectToMongo() (*mongo.Client, error) {
+	mongoURL := os.Getenv("MONGO_URL")
+	if mongoURL == "" {
+		mongoURL = defaultMongoURL
+	}
+
 	clientOptions := options.Client().ApplyURI(mongoURL)
 	clientOptions.SetAuth(options.Credential{
 		Username: "admin",

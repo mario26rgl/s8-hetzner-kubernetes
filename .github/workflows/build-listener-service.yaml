@@ -1,0 +1,47 @@
+name: Build and Push Listener Service Container
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - code/listener-service/**
+      - .github/workflows/build-listener-service.yaml
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: listener-service
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build listener binary
+        run: |
+          cd code/listener-service
+          CGO_ENABLED=0 GOOS=linux go build -o listenerApp .
+
+      - name: Build and push Listener Service Container
+        uses: macbre/push-to-ghcr@master
+        with:
+          image_name: mario26rgl/${{ env.IMAGE_NAME }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          dockerfile: ./code/listener-service/listener.dockerfile
+          context: ./code/listener-service
+          image_tag: ${{ github.sha }}
+
+      - name: Update Helm chart with new Docker image tag
+        run: |
+          sed -i "s|image: ghcr.io/mario26rgl/listener-service:.*|image: ghcr.io/mario26rgl/listener-service:${{ github.sha }}|" \
+            kubernetes/apps/listener.yaml
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add kubernetes/apps/listener.yaml
+          git commit -m "chore: update listener-service image tag to ${{ github.sha }}"
+          git push origin main
