@@ -87,7 +87,7 @@ resource "hcloud_server" "nat_router" {
   }
 
   network {
-    network_id = hcloud_network.k3s.id
+    subnet_id = hcloud_network_subnet.nat_router[0].id
     ip         = local.nat_gateway_ip
     alias_ips  = []
   }
