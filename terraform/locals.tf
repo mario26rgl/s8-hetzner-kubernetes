@@ -747,10 +747,6 @@ egressGateway:
 hubble:
   relay:
     enabled: true
-    prometheus:
-      enabled: true
-      serviceMonitor:
-        enabled: true
   ui:
     enabled: true
   tls:
@@ -762,8 +758,6 @@ hubble:
 %{for metric in var.cilium_hubble_metrics_enabled~}
       - "${metric}"
 %{endfor~}
-    serviceMonitor:
-      enabled: true
 %{endif~}
 
 
