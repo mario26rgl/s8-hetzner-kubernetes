@@ -1,0 +1,4 @@
+apiVersion: v2
+name: monitoring-addon
+description: Helm chart for deploying the monitoring addon component
+version: 0.0.1
