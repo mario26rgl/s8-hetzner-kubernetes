@@ -1,28 +1,17 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: frontend
+  name: monitoring-dashboard
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: 'https://github.com/mario26rgl/s8-hetzner-kubernetes.git'
     targetRevision: main
-    path: kubernetes/service
-    helm:
-      valuesObject:
-        name: frontend
-        namespace: frontend
-        image: ghcr.io/mario26rgl/front-end:81b8cabf34fecaebf5b2f1b749c1d00aca43ddc5
-        replicas: 1
-        port: 80
-        ingress:
-          enabled: true
-          hostname: "app.s8-hetzner.online"
-          # environment: staging
+    path: kubernetes/monitoring-dashboard
   destination:
     server: https://kubernetes.default.svc
-    namespace: frontend
+    namespace: monitoring
   syncPolicy:
     syncOptions:
       - CreateNamespace=true

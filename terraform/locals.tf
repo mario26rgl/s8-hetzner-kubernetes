@@ -645,9 +645,6 @@ authentication:
             - key: node.cloudprovider.kubernetes.io/uninitialized
               effect: NoSchedule
               value: "true"
-            - key: topology.s8.io/location
-              effect: NoSchedule
-              value: "aws-external"
             - key: CriticalAddonsOnly
               operator: "Exists"
         server:
@@ -669,6 +666,9 @@ operator:
     - key: node-role.kubernetes.io/control-plane
       operator: Exists
       effect: NoSchedule
+    - key: node.cloudprovider.kubernetes.io/uninitialized
+      effect: NoSchedule
+      value: "true"
 
 certgen:
   nodeSelector:
@@ -688,6 +688,7 @@ hubble:
       - key: node-role.kubernetes.io/control-plane
         operator: Exists
         effect: NoSchedule
+
   ui:
     nodeSelector:
       kubernetes.io/os: linux

@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/prometheus-community/helm-charts.git'
-    targetRevision: kube-prometheus-stack-85.2.2
+    targetRevision: kube-prometheus-stack-85.3.3
     path: charts/kube-prometheus-stack
     helm:
       releaseName: monitoring
@@ -19,6 +19,10 @@ spec:
         grafana:
           enabled: true
           defaultDashboardsEnabled: true
+          sidecar:
+            dashboards:
+              enabled: true
+              searchNamespace: ALL
           nodeSelector:
             kubernetes.io/os: linux
             node-role.kubernetes.io/control-plane: "true"

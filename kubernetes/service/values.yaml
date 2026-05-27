@@ -5,3 +5,7 @@ replicas: 1
 port: 80
 extraServicePorts: []
 env: {}
+ingress:
+  enabled: false
+  hostname: "example.s8-hetzner.online"
+  environment: staging
