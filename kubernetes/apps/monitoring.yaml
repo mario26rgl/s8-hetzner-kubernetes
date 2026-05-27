@@ -23,6 +23,13 @@ spec:
             dashboards:
               enabled: true
               searchNamespace: ALL
+            datasources:
+              enabled: true
+              defaultDatasourceEnabled: true
+              isDefaultDatasource: true
+              name: Prometheus
+              uid: prometheus
+              url: http://monitoring-prometheus.monitoring.svc:9090
           nodeSelector:
             kubernetes.io/os: linux
             node-role.kubernetes.io/control-plane: "true"
@@ -44,14 +51,6 @@ spec:
               - secretName: grafana-tls
                 hosts:
                   - grafana.s8-hetzner.online
-          sidecar:
-            datasources:
-              enabled: true
-              defaultDatasourceEnabled: true
-              isDefaultDatasource: true
-              name: Prometheus
-              uid: prometheus
-              url: http://monitoring-prometheus.monitoring.svc:9090
         alertmanager:
           enabled: true
           alertmanagerSpec:

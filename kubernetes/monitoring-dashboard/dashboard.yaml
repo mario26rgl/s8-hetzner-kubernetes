@@ -419,12 +419,13 @@ data:
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "sum(increase(kube_pod_container_status_restarts_total{namespace=~\"$namespace\"}[15m]))",
+              "expr": "avg by (node) (kube_node_status_condition{condition=\"Ready\",status=\"true\"}) * 100",
+              "legendFormat": "{{node}}",
               "refId": "A"
             }
           ],
-          "title": "Container restarts in 15m",
-          "type": "stat"
+          "title": "Node readiness by node",
+          "type": "timeseries"
         },
         {
           "datasource": {
@@ -556,8 +557,10 @@ data:
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "sum by (namespace) (kube_deployment_status_replicas_available{namespace=~\"$namespace\"})",
-              "legendFormat": "ready {{namespace}}",
+              "expr": "sum by (deployment) (kube_deployment_status_replicas_available{namespace=~\"frontend|auth-service|broker-service|listener-service|logger-service|mongo|postgres|rabbitmq\"})",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "{{deployment}}",
               "refId": "A"
             },
             {
@@ -565,13 +568,44 @@ data:
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "sum by (namespace) (kube_deployment_spec_replicas{namespace=~\"$namespace\"})",
-              "legendFormat": "desired {{namespace}}",
+              "expr": "sum by (deployment) (kube_deployment_spec_replicas{namespace=~\"frontend|auth-service|broker-service|listener-service|logger-service|mongo|postgres|rabbitmq\"})",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "{{deployment}}",
               "refId": "B"
             }
           ],
-          "title": "Ready vs desired replicas",
-          "type": "timeseries"
+          "title": "Deployment readiness",
+          "transformations": [
+            {
+              "id": "joinByField",
+              "options": {
+                "byField": "deployment",
+                "mode": "outer"
+              }
+            },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true,
+                  "Time 1": true,
+                  "Time 2": true
+                },
+                "indexByName": {
+                  "deployment": 0,
+                  "Value #A": 1,
+                  "Value #B": 2
+                },
+                "renameByName": {
+                  "deployment": "Deployment",
+                  "Value #A": "Ready replicas",
+                  "Value #B": "Desired replicas"
+                }
+              }
+            }
+          ],
+          "type": "table"
         },
         {
           "datasource": {
@@ -626,12 +660,73 @@ data:
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "sum by (namespace) (rate(container_network_receive_packets_dropped_total{namespace=~\"$namespace\"}[5m]) + rate(container_network_transmit_packets_dropped_total{namespace=~\"$namespace\"}[5m]))",
-              "legendFormat": "{{namespace}}",
+              "expr": "sum by (verdict) (rate(hubble_flows_processed_total[5m]))",
+              "legendFormat": "{{verdict}}",
               "refId": "A"
             }
           ],
-          "title": "Dropped packets by namespace",
+          "title": "Hubble flows by verdict",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 18,
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "pointSize": 2,
+                "showPoints": "never",
+                "spanNulls": true
+              },
+              "decimals": 2,
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 9,
+            "w": 12,
+            "x": 12,
+            "y": 16
+          },
+          "id": 10,
+          "options": {
+            "legend": {
+              "calcs": [
+                "lastNotNull",
+                "mean",
+                "max"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "sum by (reason) (rate(hubble_drop_total[5m]))",
+              "legendFormat": "{{reason}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Hubble drops by reason",
           "type": "timeseries"
         },
         {

@@ -2,10 +2,11 @@
 code/project/db-data
 
 # Mail service
-code/mail-service
+code/mail-service/*
 
-# Local Apps
-*App
+# Local builds
+api
+web
 
 # Backup files
 .bak
