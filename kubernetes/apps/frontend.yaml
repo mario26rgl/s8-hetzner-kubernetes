@@ -13,7 +13,7 @@ spec:
       valuesObject:
         name: frontend
         namespace: frontend
-        image: ghcr.io/mario26rgl/front-end:81b8cabf34fecaebf5b2f1b749c1d00aca43ddc5
+        image: ghcr.io/mario26rgl/front-end:07f7c79eabbb299fc88c20193f6ef71dd10c4b9a
         replicas: 1
         port: 80
         ingress:
