@@ -3,10 +3,12 @@ kind: ServiceMonitor
 metadata:
   name: hubble-relay
   namespace: kube-system
+  labels:
+    release: networking
 spec:
   selector:
     matchLabels:
-      k8s-app: cilium
+      k8s-app: hubble
   namespaceSelector:
     matchNames:
       - kube-system
