@@ -13,7 +13,7 @@ spec:
       valuesObject:
         name: auth-service
         namespace: auth-service
-        image: ghcr.io/mario26rgl/auth-service:05d86a0de42ab9023a85d21a6edaebe9b7b42239
+        image: ghcr.io/mario26rgl/auth-service:d81dbc3b9275736383eb19af2a5186ceef8cd2f5
         replicas: 1
         port: 80
         env:
