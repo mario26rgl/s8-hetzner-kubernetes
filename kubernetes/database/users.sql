@@ -2,7 +2,7 @@
 -- Name: user_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-CREATE SEQUENCE public.user_id_seq
+CREATE SEQUENCE IF NOT EXISTS public.user_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -20,7 +20,7 @@ SET default_table_access_method = heap;
 -- Name: users; Type: TABLE; Schema: public; Owner: postgres
 --
 
-CREATE TABLE public.users (
+CREATE TABLE IF NOT EXISTS public.users (
     id integer DEFAULT nextval('public.user_id_seq'::regclass) NOT NULL,
     email character varying(255),
     first_name character varying(255),
@@ -45,8 +45,18 @@ SELECT pg_catalog.setval('public.user_id_seq', 1, true);
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'users_pkey'
+          AND conrelid = 'public.users'::regclass
+    ) THEN
+        ALTER TABLE ONLY public.users
+            ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+    END IF;
+END $$;
 
 
 -- INSERT INTO "public"."users"("email","first_name","last_name","password","user_active","created_at","updated_at")

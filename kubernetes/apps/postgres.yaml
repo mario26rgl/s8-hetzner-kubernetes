@@ -28,6 +28,7 @@ spec:
           mountPath: /var/lib/postgresql/data
         bootstrap:
           enabled: true
+          statePath: /var/lib/postgresql/data/.users-bootstrap.sha256
   destination:
     server: https://kubernetes.default.svc
     namespace: postgres
