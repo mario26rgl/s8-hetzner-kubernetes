@@ -13,7 +13,7 @@ spec:
       valuesObject:
         name: logger-service
         namespace: logger-service
-        image: ghcr.io/mario26rgl/logger-service:281aae56e64a6622196ce0c9f2c689f747d847bc
+        image: ghcr.io/mario26rgl/logger-service:599761669d42fcb0bcabdd9ca20406bbc3938420
         replicas: 1
         port: 80
         resources:
