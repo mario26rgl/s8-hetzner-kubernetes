@@ -26,6 +26,8 @@ spec:
           enabled: true
           size: 5Gi
           mountPath: /var/lib/postgresql/data
+        bootstrap:
+          enabled: true
   destination:
     server: https://kubernetes.default.svc
     namespace: postgres

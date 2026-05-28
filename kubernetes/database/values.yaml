@@ -26,6 +26,6 @@ persistence:
   size: 5Gi
   mountPath: /var/lib/data
 bootstrap:
-  enabled: true
+  enabled: false
   sqlPath: /bootstrap/users.sql
   statePath: /var/lib/data/.users-bootstrap.sha256
