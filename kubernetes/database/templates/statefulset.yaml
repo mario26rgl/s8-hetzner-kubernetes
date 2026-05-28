@@ -58,6 +58,15 @@ spec:
         - name: {{ .Values.name }}-bootstrap
           image: {{ .Values.image }}
           imagePullPolicy: IfNotPresent
+{{- if .Values.securityContext.enabled }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
+            runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
+            runAsUser: {{ .Values.securityContext.runAsUser }}
+            runAsGroup: {{ .Values.securityContext.runAsGroup }}
+            capabilities:
+{{ toYaml .Values.securityContext.capabilities | nindent 14 }}
+{{- end }}
           command:
             - /bin/sh
             - -ec
