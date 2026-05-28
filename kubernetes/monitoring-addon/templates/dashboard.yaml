@@ -496,7 +496,6 @@ data:
               "instant": true,
               "legendFormat": "{{ `{{deployment}}` }}",
               "refId": "A"
-            },
             }
           ],
           "title": "Deployment readiness",
@@ -585,7 +584,7 @@ data:
               "expr": "sum by (deployment) (kube_deployment_status_replicas_available{namespace=~\"frontend|auth-service|broker-service|listener-service|logger-service|mongo|postgres|rabbitmq\"})",
               "legendFormat": "{{ `{{deployment}} ready` }}",
               "refId": "A"
-            },
+            }
           ],
           "title": "Replica history",
           "type": "timeseries"
