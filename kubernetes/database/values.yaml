@@ -8,7 +8,7 @@ extraServicePorts: []
 env: {}
 resources: {}
 podSecurityContext:
-  fsGroup: 999
+  fsGroup: 10999
   fsGroupChangePolicy: OnRootMismatch
   seccompProfile:
     type: RuntimeDefault
@@ -16,8 +16,8 @@ securityContext:
   enabled: true
   allowPrivilegeEscalation: false
   runAsNonRoot: true
-  runAsUser: 999
-  runAsGroup: 999
+  runAsUser: 10999
+  runAsGroup: 10999
   capabilities:
     drop:
       - ALL
