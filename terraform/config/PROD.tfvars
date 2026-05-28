@@ -5,6 +5,7 @@ use_control_plane_lb                     = true
 control_plane_lb_enable_public_interface = false # Forward cluster API traffic through Bastion
 automatically_upgrade_os                 = false # Development environment
 cluster_name                             = "s8-hetzner"
+disable_selinux                          = true
 
 # Cluster Networking
 cni_plugin         = "cilium"
@@ -20,6 +21,7 @@ load_balancer_algorithm_type = "round_robin"
 # Add-ons
 enable_metrics_server   = true
 enable_argocd           = true
+enable_vpa              = true
 enable_cert_manager     = true
 enable_external_secrets = "true"
 
@@ -31,6 +33,27 @@ argocd_github_username  = "mario26rgl"
 
 allow_scheduling_on_control_plane = false
 
+k3s_audit_policy_config = <<-EOT
+apiVersion: audit.k8s.io/v1
+kind: Policy
+omitStages:
+  - RequestReceived
+rules:
+  - level: Metadata
+    resources:
+      - group: ""
+        resources: ["pods", "services", "namespaces", "configmaps", "secrets"]
+  - level: RequestResponse
+    verbs: ["create", "update", "patch", "delete"]
+    resources:
+      - group: "apps"
+        resources: ["deployments", "statefulsets", "daemonsets", "replicasets"]
+  - level: Metadata
+    resources:
+      - group: ""
+        resources: ["nodes", "nodes/status"]
+EOT
+
 # Cert-Manager configuration
 acme_email         = "mario_constantin1234@proton.me"
 issuer_environment = "staging"
@@ -41,7 +64,7 @@ cilium_hubble_enabled         = true
 cilium_hubble_metrics_enabled = ["dns", "drop", "tcp", "flow", "port-distribution", "icmp", "httpV2"]
 enable_wireguard              = true
 hubble_ingress_hostname       = "hubble.s8-hetzner.online"
-cilium_mtls_enabled           = false
+cilium_mtls_enabled           = true
 cilium_routing_mode           = "native"
 cilium_clustermesh_enabled    = false
 

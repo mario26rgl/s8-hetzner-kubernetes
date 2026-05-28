@@ -5,6 +5,38 @@ replicas: 1
 port: 80
 extraServicePorts: []
 env: {}
+resources: {}
+podSecurityContext:
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  enabled: true
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  capabilities:
+    drop:
+      - ALL
+autoscaling:
+  hpa:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+  vpa:
+    enabled: false
+    updateMode: Auto
+    controlledValues: RequestsAndLimits
+    minAllowed: {}
+    maxAllowed: {}
+networkPolicy:
+  enabled: false
+  authentication:
+    enabled: true
+    mode: required
+  ingressRules: []
+  egressRules: []
 ingress:
   enabled: false
   hostname: "example.s8-hetzner.online"

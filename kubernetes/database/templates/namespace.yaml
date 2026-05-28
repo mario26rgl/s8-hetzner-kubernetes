@@ -4,3 +4,4 @@ metadata:
   name: {{ .Values.namespace }}
   labels:
     app.kubernetes.io/name: {{ .Values.name }}
+    pod-security.kubernetes.io/enforce: restricted

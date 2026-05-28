@@ -1148,6 +1148,18 @@ variable "argocd_version" {
   description = "Version of the ArgoCD Helm chart. See https://github.com/argoproj/argo-helm/releases for the available versions."
 }
 
+variable "enable_vpa" {
+  description = "Vertical Pod Autoscaler deployment toggle"
+  type        = bool
+  default     = false
+}
+
+variable "vpa_version" {
+  type        = string
+  default     = "*"
+  description = "Version of the Vertical Pod Autoscaler Helm chart."
+}
+
 variable "argocd_ingress_hostname" {
   type        = string
   default     = ""

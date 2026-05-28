@@ -267,6 +267,7 @@ resource "terraform_data" "kustomization" {
       coalesce(var.cilium_version, "N/A"),
       coalesce(var.traefik_version, "N/A"),
       coalesce(var.cert_manager_version, "N/A"),
+      coalesce(var.vpa_version, "N/A"),
       coalesce(var.sys_upgrade_controller_version, "N/A"),
       coalesce(var.argocd_version, "N/A"),
     ])
@@ -398,6 +399,16 @@ resource "terraform_data" "kustomization" {
   }
 
   provisioner "file" {
+    content = var.enable_vpa ? templatefile(
+      "${path.module}/templates/vpa.yaml.tpl",
+      {
+        version = var.vpa_version
+      }
+    ) : ""
+    destination = "/var/post_install/vpa.yaml"
+  }
+
+  provisioner "file" {
     content = var.enable_external_secrets ? templatefile(
       "${path.module}/templates/external-secrets.yaml.tpl",
       {
@@ -459,6 +470,7 @@ resource "terraform_data" "kustomization" {
       [
         # Ready, set, go for the kustomization
         "kubectl apply -k /var/post_install",
+        var.enable_vpa ? "until kubectl get crd verticalpodautoscalers.autoscaling.k8s.io >/dev/null 2>&1; do echo 'Waiting for VPA CRD...'; sleep 2; done" : "",
         "echo 'Waiting for the system-upgrade-controller deployment to become available...'",
         "kubectl -n system-upgrade wait --for=condition=available --timeout=900s deployment/system-upgrade-controller",
         "sleep 7", # important as the system upgrade controller CRDs sometimes don't get ready right away, especially with Cilium.

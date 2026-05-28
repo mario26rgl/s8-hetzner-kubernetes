@@ -89,7 +89,7 @@ data:
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "100 * min(avg_over_time(up{namespace=~\"$namespace\",job=~\"auth-service|broker-service|frontend|listener-service|logger-service|mail-service\"}[5m]))",
+              "expr": "100 * min(avg_over_time(up{namespace=~\"$namespace\",job=~\"auth-service|broker-service|frontend|listener-service|logger-service\"}[5m]))",
               "refId": "A"
             }
           ],
@@ -155,7 +155,7 @@ data:
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "max(histogram_quantile(0.95, sum by (le, job) (rate(http_request_duration_seconds_bucket{namespace=~\"$namespace\",job=~\"auth-service|broker-service|frontend|listener-service|logger-service|mail-service\"}[5m]))))",
+              "expr": "max(histogram_quantile(0.95, sum by (le, job) (rate(http_request_duration_seconds_bucket{namespace=~\"$namespace\",job=~\"auth-service|broker-service|frontend|listener-service|logger-service\"}[5m]))))",
               "refId": "A"
             }
           ],
@@ -431,7 +431,7 @@ data:
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "avg by (job) (avg_over_time(up{namespace=~\"$namespace\",job=~\"auth-service|broker-service|frontend|listener-service|logger-service|mail-service\"}[5m])) * 100",
+              "expr": "avg by (job) (avg_over_time(up{namespace=~\"$namespace\",job=~\"auth-service|broker-service|frontend|listener-service|logger-service\"}[5m])) * 100",
               "legendFormat": "{{ `{{job}}` }}",
               "refId": "A"
             }
@@ -497,16 +497,6 @@ data:
               "legendFormat": "{{ `{{deployment}}` }}",
               "refId": "A"
             },
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
-              "expr": "sum by (deployment) (kube_deployment_spec_replicas{namespace=~\"frontend|auth-service|broker-service|listener-service|logger-service|mongo|postgres|rabbitmq\"})",
-              "format": "table",
-              "instant": true,
-              "legendFormat": "{{ `{{deployment}}` }}",
-              "refId": "B"
             }
           ],
           "title": "Deployment readiness",
@@ -528,13 +518,11 @@ data:
                 },
                 "indexByName": {
                   "deployment": 0,
-                  "Value #A": 1,
-                  "Value #B": 2
+                  "Value #A": 1
                 },
                 "renameByName": {
                   "deployment": "Deployment",
-                  "Value #A": "Ready",
-                  "Value #B": "Desired"
+                  "Value #A": "Ready"
                 }
               }
             }
@@ -598,15 +586,6 @@ data:
               "legendFormat": "{{ `{{deployment}} ready` }}",
               "refId": "A"
             },
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
-              "expr": "sum by (deployment) (kube_deployment_spec_replicas{namespace=~\"frontend|auth-service|broker-service|listener-service|logger-service|mongo|postgres|rabbitmq\"})",
-              "legendFormat": "{{ `{{deployment}} desired` }}",
-              "refId": "B"
-            }
           ],
           "title": "Replica history",
           "type": "timeseries"

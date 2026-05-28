@@ -16,6 +16,29 @@ spec:
         image: ghcr.io/mario26rgl/auth-service:281aae56e64a6622196ce0c9f2c689f747d847bc
         replicas: 1
         port: 80
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        autoscaling:
+          hpa:
+            enabled: true
+            minReplicas: 1
+            maxReplicas: 3
+            targetCPUUtilizationPercentage: 80
+          vpa:
+            enabled: true
+            updateMode: Auto
+            controlledValues: RequestsAndLimits
+            minAllowed:
+              cpu: 50m
+              memory: 64Mi
+            maxAllowed:
+              cpu: 500m
+              memory: 512Mi
         env:
           DSN: host=postgres.postgres.svc.cluster.local user=postgres password=password dbname=users port=5432 sslmode=disable TimeZone=UTC connect_timeout=5
           LOGGER_SERVICE_URL: http://logger-service.logger-service.svc.cluster.local

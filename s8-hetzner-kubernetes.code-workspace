@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "code"
+		}
+	],
+	"settings": {
+		"chat.tools.terminal.autoApprove": {
+			"terraform": true,
+			"helm": true
+		}
+	}
+}

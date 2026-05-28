@@ -1,16 +1,31 @@
+{{- if .Values.networkPolicy.enabled }}
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: {{ .Values.name }}-allow-all
+  name: {{ .Values.name }}-restricted
   namespace: {{ .Values.namespace }}
 spec:
   endpointSelector:
     matchLabels:
       app: {{ .Values.name }}
+{{- if .Values.networkPolicy.ingressRules }}
   ingress:
-    - fromEntities:
-        - all
-      toPorts:
-        - ports:
-            - port: "{{ .Values.port }}"
-              protocol: TCP
+{{- range .Values.networkPolicy.ingressRules }}
+{{- if $.Values.networkPolicy.authentication.enabled }}
+{{ toYaml (list (merge (dict "authentication" (dict "mode" $.Values.networkPolicy.authentication.mode)) .)) | nindent 4 }}
+{{- else }}
+{{ toYaml (list .) | nindent 4 }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if .Values.networkPolicy.egressRules }}
+  egress:
+{{- range .Values.networkPolicy.egressRules }}
+{{- if $.Values.networkPolicy.authentication.enabled }}
+{{ toYaml (list (merge (dict "authentication" (dict "mode" $.Values.networkPolicy.authentication.mode)) .)) | nindent 4 }}
+{{- else }}
+{{ toYaml (list .) | nindent 4 }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

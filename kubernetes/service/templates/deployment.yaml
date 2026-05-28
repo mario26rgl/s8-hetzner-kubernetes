@@ -15,16 +15,32 @@ spec:
       labels:
         app: {{ .Values.name }}
     spec:
+{{- with .Values.podSecurityContext }}
+      securityContext:
+{{ toYaml . | nindent 8 }}
+{{- end }}
       containers:
         - name: {{ .Values.name }}
           image: {{ .Values.image }}
           imagePullPolicy: IfNotPresent
+{{- if .Values.securityContext.enabled }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
+            readOnlyRootFilesystem: {{ .Values.securityContext.readOnlyRootFilesystem }}
+            runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
+            capabilities:
+{{ toYaml .Values.securityContext.capabilities | nindent 14 }}
+{{- end }}
 {{- if .Values.env }}
           env:
 {{- range $key, $value := .Values.env }}
             - name: {{ $key }}
               value: {{ $value | quote }}
 {{- end }}
+{{- end }}
+{{- with .Values.resources }}
+          resources:
+{{ toYaml . | nindent 12 }}
 {{- end }}
           ports:
             - name: http

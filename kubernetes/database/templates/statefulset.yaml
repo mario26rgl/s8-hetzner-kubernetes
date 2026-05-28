@@ -16,10 +16,27 @@ spec:
       labels:
         app: {{ .Values.name }}
     spec:
+{{- with .Values.podSecurityContext }}
+      securityContext:
+{{ toYaml . | nindent 8 }}
+{{- end }}
+      volumes:
+        - name: bootstrap-sql
+          configMap:
+            name: {{ .Values.name }}-bootstrap-sql
       containers:
         - name: {{ .Values.name }}
           image: {{ .Values.image }}
           imagePullPolicy: IfNotPresent
+{{- if .Values.securityContext.enabled }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
+            runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
+            runAsUser: {{ .Values.securityContext.runAsUser }}
+            runAsGroup: {{ .Values.securityContext.runAsGroup }}
+            capabilities:
+{{ toYaml .Values.securityContext.capabilities | nindent 14 }}
+{{- end }}
 {{- if .Values.env }}
           env:
 {{- range $key, $value := .Values.env }}
@@ -27,12 +44,47 @@ spec:
               value: {{ $value | quote }}
 {{- end }}
 {{- end }}
+{{- with .Values.resources }}
+          resources:
+{{ toYaml . | nindent 12 }}
+{{- end }}
           ports:
             - name: db
               containerPort: {{ .Values.containerPort }}
           volumeMounts:
             - name: data
               mountPath: {{ .Values.persistence.mountPath }}
+{{- if .Values.bootstrap.enabled }}
+        - name: {{ .Values.name }}-bootstrap
+          image: {{ .Values.image }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              CURRENT_HASH=$(sha256sum {{ .Values.bootstrap.sqlPath }} | awk '{print $1}')
+              LAST_HASH=$(cat {{ .Values.bootstrap.statePath }} 2>/dev/null || true)
+              if [ "${CURRENT_HASH}" != "${LAST_HASH}" ]; then
+                until pg_isready -h 127.0.0.1 -p {{ .Values.containerPort }} -U "${POSTGRES_USER}" >/dev/null 2>&1; do
+                  sleep 2
+                done
+                PGPASSWORD="${POSTGRES_PASSWORD}" psql -h 127.0.0.1 -p {{ .Values.containerPort }} -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" -v ON_ERROR_STOP=1 -f {{ .Values.bootstrap.sqlPath }}
+                echo "${CURRENT_HASH}" > {{ .Values.bootstrap.statePath }}
+              fi
+              tail -f /dev/null
+{{- if .Values.env }}
+          env:
+{{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+{{- end }}
+{{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+            - name: bootstrap-sql
+              mountPath: /bootstrap
+{{- end }}
   volumeClaimTemplates:
     - metadata:
         name: data

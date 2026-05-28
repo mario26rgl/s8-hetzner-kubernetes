@@ -60,6 +60,7 @@ locals {
       lookup(local.ingress_controller_install_resources, var.ingress_controller, []),
       lookup(local.cni_install_resources, var.cni_plugin, []),
       var.enable_cert_manager ? ["cert_manager.yaml"] : [],
+      var.enable_vpa ? ["vpa.yaml"] : [],
       var.enable_argocd ? ["argocd.yaml"] : [],
       var.enable_external_secrets ? ["external-secrets.yaml"] : [],
       var.cilium_hubble_enabled ? ["hubble-ingress.yaml"] : [],
