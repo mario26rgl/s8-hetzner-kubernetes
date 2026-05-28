@@ -13,7 +13,7 @@ spec:
       valuesObject:
         name: broker-service
         namespace: broker-service
-        image: ghcr.io/mario26rgl/broker-service:281aae56e64a6622196ce0c9f2c689f747d847bc
+        image: ghcr.io/mario26rgl/broker-service:f4215c3ba74dee558ef8c744bbff4930cc67d5a1
         replicas: 1
         port: 80
         resources:
