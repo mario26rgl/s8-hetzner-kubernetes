@@ -5,10 +5,10 @@ locals {
     var.autoscaler_subnet_index == null
     ? (
       length(hcloud_network_subnet.agent) > 0
-      ? hcloud_network_subnet.agent[0].id
-      : hcloud_network_subnet.control_plane[0].id
+      ? hcloud_network.k3s.id
+      : hcloud_network.k3s.id
     )
-    : hcloud_network_subnet.agent[var.autoscaler_subnet_index].id
+    : hcloud_network.k3s.id
   )
 
   cluster_config = {

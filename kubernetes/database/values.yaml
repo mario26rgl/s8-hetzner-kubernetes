@@ -6,7 +6,13 @@ servicePort: 5432
 containerPort: 5432
 extraServicePorts: []
 env: {}
-resources: {}
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
 podSecurityContext:
   fsGroup: 10999
   fsGroupChangePolicy: OnRootMismatch

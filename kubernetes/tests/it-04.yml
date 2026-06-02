@@ -1,0 +1,10 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: deny-all-ingress
+  namespace: broker-service
+spec:
+  endpointSelector: {}  # selects all pods in this namespace
+  ingressDeny:
+    - fromEndpoints:
+        - {}  # deny traffic from any endpoint

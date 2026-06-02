@@ -13,6 +13,7 @@ spec:
       helm:
         valuesObject:
           opencost:
+            clusterName: s8-hetzner
             nodeSelector:
               kubernetes.io/os: linux
               node-role.kubernetes.io/control-plane: "true"
