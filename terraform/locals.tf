@@ -578,7 +578,11 @@ locals {
       "audit-log-maxage=${var.k3s_audit_log_maxage}",
       "audit-log-maxbackup=${var.k3s_audit_log_maxbackup}",
       "audit-log-maxsize=${var.k3s_audit_log_maxsize}"
-    ] : []
+    ] : [],
+    [
+      "enable-admission-plugins=NodeRestriction,EventRateLimit",
+      "service-account-extend-token-expiration=false"
+    ]
   )
 
   cilium_values_default = <<EOT
@@ -670,6 +674,9 @@ operator:
     - key: node.cloudprovider.kubernetes.io/uninitialized
       effect: NoSchedule
       value: "true"
+    - key: node.kubernetes.io/not-ready
+      operator: Exists
+      effect: NoSchedule
 
 certgen:
   nodeSelector:
@@ -968,6 +975,13 @@ EOT
 crds:
   enabled: true
   keep: true
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
 nodeSelector:
   kubernetes.io/os: linux
   node-role.kubernetes.io/control-plane: "true"
@@ -976,6 +990,13 @@ tolerations:
     operator: Exists
     effect: NoSchedule
 webhook:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
   nodeSelector:
     kubernetes.io/os: linux
     node-role.kubernetes.io/control-plane: "true"
@@ -984,6 +1005,13 @@ webhook:
       operator: Exists
       effect: NoSchedule
 cainjector:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 128Mi
+    limits:
+      cpu: 100m
+      memory: 256Mi
   nodeSelector:
     kubernetes.io/os: linux
     node-role.kubernetes.io/control-plane: "true"
@@ -992,6 +1020,13 @@ cainjector:
       operator: Exists
       effect: NoSchedule
 startupapicheck:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 50m
+      memory: 64Mi
   nodeSelector:
     kubernetes.io/os: linux
     node-role.kubernetes.io/control-plane: "true"
@@ -1018,9 +1053,64 @@ global:
     - key: node-role.kubernetes.io/control-plane
       operator: Exists
       effect: NoSchedule
+controller:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 512Mi
+    limits:
+      cpu: 700m
+      memory: 1Gi
+applicationSet:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+dex:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 96Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+notifications:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+redis:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+repoServer:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
 server:
   # Traefik Ingress handles TLS termination; ArgoCD listens on plain HTTP internally.
   insecure: true
+  resources:
+    requests:
+      cpu: 20m
+      memory: 128Mi
+    limits:
+      cpu: 100m
+      memory: 256Mi
 %{if var.argocd_ingress_hostname != ""~}
   ingress:
     enabled: true
@@ -1047,6 +1137,13 @@ configs:
 
   external_secrets_values_default = <<-EOT
 installCRDs: true
+resources:
+  requests:
+    cpu: 20m
+    memory: 64Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
 nodeSelector:
   kubernetes.io/os: linux
   node-role.kubernetes.io/control-plane: "true"
@@ -1055,6 +1152,13 @@ tolerations:
     operator: Exists
     effect: NoSchedule
 webhook:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 50m
+      memory: 64Mi
   nodeSelector:
     kubernetes.io/os: linux
     node-role.kubernetes.io/control-plane: "true"
@@ -1063,6 +1167,13 @@ webhook:
       operator: Exists
       effect: NoSchedule
 certController:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 128Mi
+    limits:
+      cpu: 100m
+      memory: 256Mi
   nodeSelector:
     kubernetes.io/os: linux
     node-role.kubernetes.io/control-plane: "true"
@@ -1158,6 +1269,7 @@ else
   fi
   echo "Updated config.yaml detected, restart of k3s service required"
   cp /tmp/config.yaml /etc/rancher/k3s/config.yaml
+  cp /tmp/config.yaml /etc/rancher/k3s/configtosee.yaml
   if systemctl is-active --quiet k3s; then
     systemctl restart k3s || (echo "Error: Failed to restart k3s. Restoring /etc/rancher/k3s/config.yaml from backup" && cp /tmp/config_$DATE.yaml /etc/rancher/k3s/config.yaml && systemctl restart k3s)
   elif systemctl is-active --quiet k3s-agent; then

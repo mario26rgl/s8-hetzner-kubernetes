@@ -33,6 +33,26 @@ argocd_github_username  = "mario26rgl"
 
 allow_scheduling_on_control_plane = false
 
+# HARDENING
+agent_nodes_custom_config = {
+  protect-kernel-defaults = true
+}
+control_planes_custom_config = {
+  protect-kernel-defaults = true
+  secrets-encryption      = true
+}
+k3s_global_kubelet_args = [
+  "anonymous-auth=false",
+  "authorization-mode=Webhook",
+  "client-ca-file=/var/lib/rancher/k3s/agent/client-ca.crt",
+  "tls-cert-file=/var/lib/rancher/k3s/agent/serving-kubelet.crt",
+  "tls-private-key-file=/var/lib/rancher/k3s/agent/serving-kubelet.key",
+  "read-only-port=0",
+  "pod-max-pids=100",
+  "streaming-connection-idle-timeout=5m",
+  "tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305",
+]
+
 k3s_audit_policy_config = <<-EOT
 apiVersion: audit.k8s.io/v1
 kind: Policy

@@ -17,6 +17,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      digest: ${{ steps.digest.outputs.value }}
 
     steps:
       - name: Checkout repository
@@ -74,10 +76,10 @@ jobs:
 
       - name: Update Helm chart with new Docker image tag
         run: |
-          sed -i "s|image: ghcr.io/mario26rgl/front-end:.*|image: ghcr.io/mario26rgl/front-end:${{ github.sha }}|" \
+          sed -i "s|image: ghcr.io/mario26rgl/front-end:.*|image: ghcr.io/mario26rgl/front-end@${{ needs.build-and-push.outputs.digest }}|" \
             kubernetes/apps/frontend.yaml
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add kubernetes/apps/frontend.yaml
-          git commit -m "chore: update frontend image tag to ${{ github.sha }}"
+          git commit -m "chore: update frontend image digest to ${{ github.sha }}"
           git push origin main

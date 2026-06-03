@@ -8,6 +8,13 @@ spec:
     spec:
       containers:
         - name: system-upgrade-controller
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 150m
+              memory: 164Mi
           volumeMounts:
             - name: ca-certificates
               mountPath: /var/lib/ca-certificates

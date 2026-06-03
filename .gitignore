@@ -6,7 +6,6 @@ code/mail-service/*
 
 # Local builds
 api
-web
 
 # Backup files
 .bak
