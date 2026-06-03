@@ -15,7 +15,7 @@ spec:
         nameOverride: monitoring
         namespaceOverride: monitoring
         crds:
-          enabled: true
+          enabled: false
         grafana:
           enabled: true
           defaultDashboardsEnabled: true
