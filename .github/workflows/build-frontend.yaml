@@ -38,6 +38,13 @@ jobs:
       
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
+
+      - name: Get image digest
+        id: digest
+        run: |
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' \
+            ghcr.io/mario26rgl/front-end:${{ github.sha }} | cut -d@ -f2)
+          echo "value=$DIGEST" >> $GITHUB_OUTPUT
   
       - name: Sign the image
         env:
@@ -45,7 +52,9 @@ jobs:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
         run: |
           cosign sign --key env://COSIGN_PRIVATE_KEY \
-            ghcr.io/mario26rgl/front-end:${{ github.sha }}
+            --tlog-upload=false \
+            --yes \
+            ghcr.io/mario26rgl/front-end@${{ steps.digest.outputs.value }}
 
   update-manifest:
     runs-on: ubuntu-latest
