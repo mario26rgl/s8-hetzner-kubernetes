@@ -16,6 +16,111 @@ spec:
         image: ghcr.io/mario26rgl/broker-service:c41d7a78b1fb519825964fafe152df9437104dcd
         replicas: 2
         port: 80
+        networkPolicy:
+          enabled: true
+          ingressRules:
+            # Frontend → broker HTTP (L7: only POST /handle and /log)
+          - fromEndpoints:
+            - matchLabels:
+                app: frontend
+                io.kubernetes.pod.namespace: frontend
+            toPorts:
+            - ports:
+              - port: "80"
+                protocol: TCP
+              rules:
+                http:
+                - method: POST
+                  path: /handle
+                # - method: POST
+                #   path: /
+                - method: POST
+                  path: /log
+            authentication:
+              mode: required
+            # Prometheus → broker HTTP (L7: /metrics endpoint for scraping)
+          - fromEndpoints:
+            - matchLabels:
+                prometheus: monitoring-prometheus
+                operator.prometheus.io/name: monitoring-prometheus
+                io.kubernetes.pod.namespace: monitoring
+            toPorts:
+            - ports:
+              - port: "80"
+                protocol: TCP
+              rules:
+                http:
+                - method: GET
+                  path: /metrics
+
+          egressRules:
+          # DNS
+          - toEndpoints:
+            - matchLabels:
+                io.kubernetes.pod.namespace: kube-system
+                k8s-app: kube-dns
+            toPorts:
+            - ports:
+              - port: "53"
+                protocol: UDP
+              - port: "53"
+                protocol: TCP
+          # → auth-service HTTP (L7)
+          - toEndpoints:
+            - matchLabels:
+                app: auth-service
+                io.kubernetes.pod.namespace: auth-service
+            toPorts:
+            - ports:
+                - port: "80"
+                  protocol: TCP
+              rules:
+                http:
+                  - method: ".*"
+                    path: ".*"
+            authentication:
+              mode: required
+
+          # → logger-service HTTP (L7)
+          - toEndpoints:
+            - matchLabels:
+                app: logger-service
+                io.kubernetes.pod.namespace: logger-service
+            toPorts:
+            - ports:
+              - port: "80"
+                protocol: TCP
+              rules:
+                http:
+                - method: ".*"
+                  path: ".*"
+            authentication:
+              mode: required
+
+          # → logger-service gRPC (L7)
+          - toEndpoints:
+            - matchLabels:
+                app: logger-service
+                io.kubernetes.pod.namespace: logger-service
+            toPorts:
+            - ports:
+              - port: "50051"
+                protocol: TCP
+              rules:
+                http:  # Cilium parses gRPC as HTTP/2
+                  - {}
+            authentication:
+              mode: required
+
+          # → rabbitmq AMQP (L4 only — Cilium has no AMQP L7 parser)
+          - toEndpoints:
+            - matchLabels:
+                app: rabbitmq
+                io.kubernetes.pod.namespace: rabbitmq
+            toPorts:
+            - ports:
+              - port: "5672"
+                protocol: TCP
         resources:
           requests:
             cpu: 100m

@@ -15,6 +15,7 @@ spec:
       labels:
         app: {{ .Values.name }}
     spec:
+      serviceAccountName: "{{ .Values.name }}-sa"
 {{- with .Values.podSecurityContext }}
       securityContext:
 {{ toYaml . | nindent 8 }}

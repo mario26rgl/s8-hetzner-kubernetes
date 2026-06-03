@@ -32,9 +32,6 @@ autoscaling:
     maxAllowed: {}
 networkPolicy:
   enabled: false
-  authentication:
-    enabled: true
-    mode: required
   ingressRules: []
   egressRules: []
 ingress:

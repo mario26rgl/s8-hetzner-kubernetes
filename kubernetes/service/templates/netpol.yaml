@@ -11,21 +11,13 @@ spec:
 {{- if .Values.networkPolicy.ingressRules }}
   ingress:
 {{- range .Values.networkPolicy.ingressRules }}
-{{- if $.Values.networkPolicy.authentication.enabled }}
-{{ toYaml (list (merge (dict "authentication" (dict "mode" $.Values.networkPolicy.authentication.mode)) .)) | nindent 4 }}
-{{- else }}
 {{ toYaml (list .) | nindent 4 }}
-{{- end }}
 {{- end }}
 {{- end }}
 {{- if .Values.networkPolicy.egressRules }}
   egress:
 {{- range .Values.networkPolicy.egressRules }}
-{{- if $.Values.networkPolicy.authentication.enabled }}
-{{ toYaml (list (merge (dict "authentication" (dict "mode" $.Values.networkPolicy.authentication.mode)) .)) | nindent 4 }}
-{{- else }}
 {{ toYaml (list .) | nindent 4 }}
-{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

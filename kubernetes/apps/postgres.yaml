@@ -18,10 +18,11 @@ spec:
         servicePort: 5432
         containerPort: 5432
         env:
+          PGDATA: /var/lib/postgresql/data/pgdata
+        secret:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
           POSTGRES_DB: users
-          PGDATA: /var/lib/postgresql/data/pgdata
         persistence:
           enabled: true
           size: 5Gi

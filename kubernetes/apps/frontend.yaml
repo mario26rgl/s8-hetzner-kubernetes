@@ -16,6 +16,48 @@ spec:
         image: ghcr.io/mario26rgl/front-end:b7b9fa6200793267273afa137de5c8e2598b5bc1
         replicas: 2
         port: 80
+        networkPolicy:
+          enabled: true
+          ingressRules:
+            # Traefik ingress controller → frontend
+            - fromEndpoints:
+                - matchLabels:
+                    io.kubernetes.pod.namespace: traefik
+              toPorts:
+                - ports:
+                    - port: "80"
+                      protocol: TCP
+          egressRules:
+            # DNS
+            - toEndpoints:
+                - matchLabels:
+                    io.kubernetes.pod.namespace: kube-system
+                    k8s-app: kube-dns
+              toPorts:
+                - ports:
+                    - port: "53"
+                      protocol: UDP
+                    - port: "53"
+                      protocol: TCP
+            # → broker HTTP (L7)
+            - toEndpoints:
+                - matchLabels:
+                    app: broker-service
+                    io.kubernetes.pod.namespace: broker-service
+              toPorts:
+                - ports:
+                    - port: "80"
+                      protocol: TCP
+                  rules:
+                    http:
+                      - method: POST
+                        path: /handle
+                      - method: POST
+                        path: /log
+                      - method: POST
+                        path: /
+              authentication:
+                mode: required
         resources:
           requests:
             cpu: 100m
