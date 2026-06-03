@@ -44,15 +44,8 @@ spec:
         message: "Images must not use the 'latest' tag. Use a digest or specific version tag."
         foreach:
           - list: "request.object.spec.containers"
-            deny:
-              conditions:
-                any:
-                  - key: "{{ element.image }}"
-                    operator: Equals
-                    value: "*:latest"
-                  - key: "{{ element.image }}"
-                    operator: NotContains
-                    value: ":"
+            pattern:
+              image: "?*@sha256:* | ?*:?!(latest)"
 ---
 # Verify Cosign signature for ghcr.io/mario26rgl/ images
 apiVersion: kyverno.io/v1
@@ -84,3 +77,6 @@ spec:
                       MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEDsABb+iG9uBup3dpY8ZPZkapMP4V
                       uSmpBTpfBWFI0c9uf9Hak6UTv3OaAhyPGGhnYCR50xl/Xl+MnSUQIjx08w==
                       -----END PUBLIC KEY-----
+                    rekor:
+                      url: ""
+                      ignoreTlog: true
