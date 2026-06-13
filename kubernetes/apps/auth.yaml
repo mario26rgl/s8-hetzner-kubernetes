@@ -45,10 +45,16 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: auth-service
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
     automated:
       prune: true
       selfHeal: true
