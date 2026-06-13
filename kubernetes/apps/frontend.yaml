@@ -27,6 +27,20 @@ spec:
                 - ports:
                     - port: "80"
                       protocol: TCP
+            # Prometheus → broker HTTP (L7: /metrics endpoint for scraping)
+            - fromEndpoints:
+              - matchLabels:
+                  prometheus: monitoring-prometheus
+                  operator.prometheus.io/name: monitoring-prometheus
+                  io.kubernetes.pod.namespace: monitoring
+              toPorts:
+              - ports:
+                - port: "80"
+                  protocol: TCP
+                rules:
+                  http:
+                  - method: GET
+                    path: /metrics
           egressRules:
             # DNS
             - toEndpoints:
