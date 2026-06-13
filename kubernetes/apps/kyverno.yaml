@@ -18,13 +18,13 @@ spec:
         policyReportsCleanup:
           image:
             registry: ghcr.io
-            repository: bitnami/kubectl
-            tag: 'latest'
+            repository: mario26rgl/kubectl
+            tag: 'stable'
         webhooksCleanup:
           image:
             registry: ghcr.io
-            repository: bitnami/kubectl
-            tag: 'latest'
+            repository: mario26rgl/kubectl
+            tag: 'stable'
   destination:
     server: https://kubernetes.default.svc
     namespace: kyverno
