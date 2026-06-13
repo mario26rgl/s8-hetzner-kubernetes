@@ -16,7 +16,9 @@ spec:
               namespaceSelector:
                 matchLabels:
                   app: "true"
+      skipBackgroundRequests: true
       validate:
+        allowExistingViolations: false
         message: "Images must come from ghcr.io/mario26rgl/"
         foreach:
           - list: "request.object.spec.containers"
@@ -40,7 +42,9 @@ spec:
               namespaceSelector:
                 matchLabels:
                   app: "true"
+      skipBackgroundRequests: true
       validate:
+        allowExistingViolations: false
         message: "Images must not use the 'latest' tag. Use a digest or specific version tag."
         foreach:
           - list: "request.object.spec.containers"
@@ -64,14 +68,20 @@ spec:
               namespaceSelector:
                 matchLabels:
                   app: "true"
+      skipBackgroundRequests: true
       verifyImages:
         - imageReferences:
             - "ghcr.io/mario26rgl/*"
+          mutateDigest: true	
+          required: true
+          useCache: true	
+          verifyDigest: true
           skipImageReferences:
             - "ghcr.io/mario26rgl/broker-service:*"  # remove once broker is signed
           attestors:
             - entries:
                 - keys:
+                    signatureAlgorithm: sha256
                     publicKeys: |-
                       -----BEGIN PUBLIC KEY-----
                       MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEDsABb+iG9uBup3dpY8ZPZkapMP4V
@@ -80,3 +90,4 @@ spec:
                     rekor:
                       url: ""
                       ignoreTlog: true
+                  signatureAlgorithm: sha256

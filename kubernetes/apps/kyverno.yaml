@@ -17,14 +17,14 @@ spec:
           replicas: 1
         policyReportsCleanup:
           image:
-            registry: registry.k8s.io
-            repository: kubectl
-            tag: 'v1.32.3'
+            registry: ghcr.io
+            repository: bitnami/kubectl
+            tag: 'latest'
         webhooksCleanup:
           image:
-            registry: registry.k8s.io
-            repository: kubectl
-            tag: 'v1.32.3'
+            registry: ghcr.io
+            repository: bitnami/kubectl
+            tag: 'latest'
   destination:
     server: https://kubernetes.default.svc
     namespace: kyverno
