@@ -57,7 +57,7 @@ func (l *LogEntry) All() ([]*LogEntry, error) {
 	collection := client.Database("logs").Collection("logs")
 
 	opts := options.Find()
-	opts.SetSort(bson.D{{"created_at", -1}})
+	opts.SetSort(bson.D{{Key: "created_at", Value: -1}})
 
 	cursor, err := collection.Find(ctx, bson.D{}, opts)
 	if err != nil {
@@ -135,10 +135,10 @@ func (l *LogEntry) Update() (*mongo.UpdateResult, error) {
 		ctx,
 		bson.M{"_id": docID},
 		bson.D{
-			{"$set", bson.D{
-				{"name", l.Name},
-				{"data", l.Data},
-				{"updated_at", time.Now()},
+			{Key: "$set", Value: bson.D{
+				{Key: "name", Value: l.Name},
+				{Key: "data", Value: l.Data},
+				{Key: "updated_at", Value: time.Now()},
 			}},
 		},
 	)

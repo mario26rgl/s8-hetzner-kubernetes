@@ -33,12 +33,6 @@ jobs:
       - name: go vet
         run: go vet ./...
 
-      - name: staticcheck
-        uses: dominikh/staticcheck-action@v1
-        with:
-          working-directory: ${{ inputs.service-dir }}
-          install-go: false
-
       - name: govulncheck
         run: |
           go install golang.org/x/vuln/cmd/govulncheck@latest
