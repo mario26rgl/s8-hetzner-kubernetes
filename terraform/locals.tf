@@ -1,6 +1,6 @@
 locals {
   # Hybrid AWS-Hetzner POC toggle
-  poc_hybrid_enabled = var.enable_poc_hybrid_aws && var.nat_router != null
+  # poc_hybrid_enabled = var.enable_poc_hybrid_aws && var.nat_router != null
 
   # Do not hardcode private ssh key
   ssh_agent_identity = var.ssh_public_key

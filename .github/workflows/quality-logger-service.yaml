@@ -1,0 +1,15 @@
+name: Quality Gate — logger-service
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - code/logger-service/**
+      - .github/workflows/quality-logger-service.yaml
+      - .github/workflows/reusable-go-quality.yaml
+
+jobs:
+  quality:
+    uses: ./.github/workflows/reusable-go-quality.yaml
+    with:
+      service-dir: code/logger-service
