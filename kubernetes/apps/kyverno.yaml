@@ -19,12 +19,12 @@ spec:
           image:
             registry: ghcr.io
             repository: mario26rgl/kubectl
-            tag: 'stable'
+            tag: 'stable-amd64'
         webhooksCleanup:
           image:
             registry: ghcr.io
             repository: mario26rgl/kubectl
-            tag: 'stable'
+            tag: 'stable-amd64'
   destination:
     server: https://kubernetes.default.svc
     namespace: kyverno
