@@ -1,6 +1,6 @@
 module listener-service
 
-go 1.26.1
+go 1.26.4
 
 require (
 	github.com/prometheus/client_golang v1.20.5
