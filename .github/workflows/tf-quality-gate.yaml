@@ -13,29 +13,29 @@ env:
   TF_PLAN_PREFIX: plans
 
 jobs:
-  # lint:
-  #   name: TFLint
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: read
-  #   defaults:
-  #     run:
-  #       working-directory: terraform
-  #   steps:
-  #     - uses: actions/checkout@v4
+  lint:
+    name: TFLint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v4
 
-  #     - uses: terraform-linters/setup-tflint@v4
-  #       with:
-  #         tflint_version: latest
+      - uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
 
-  #     - name: Init TFLint
-  #       run: tflint --init
-  #       # Uncomment to avoid GitHub API rate limits on plugin downloads:
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Init TFLint
+        run: tflint --init
+        # Uncomment to avoid GitHub API rate limits on plugin downloads:
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  #     - name: Run TFLint
-  #       run: tflint -f compact
+      - name: Run TFLint
+        run: tflint -f compact
 
   security:
     name: Trivy Security Scan
@@ -71,7 +71,7 @@ jobs:
 
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: latest
+          terraform_version: 1.15.6
 
       - name: Terraform Init
         run: terraform init

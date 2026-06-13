@@ -1,0 +1,15 @@
+name: Quality Gate — auth-service
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - code/auth-service/**
+      - .github/workflows/quality-auth-service.yaml
+      - .github/workflows/reusable-go-quality.yaml
+
+jobs:
+  quality:
+    uses: ./.github/workflows/reusable-go-quality.yaml
+    with:
+      service-dir: code/auth-service

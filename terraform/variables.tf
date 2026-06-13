@@ -1039,17 +1039,17 @@ variable "k3s_global_kubelet_args" {
   description = "Global kubelet args for all nodes."
 }
 
-variable "k3s_control_plane_kubelet_args" {
-  type        = list(string)
-  default     = []
-  description = "Kubelet args for control plane nodes."
-}
+# variable "k3s_control_plane_kubelet_args" {
+#   type        = list(string)
+#   default     = []
+#   description = "Kubelet args for control plane nodes."
+# }
 
-variable "k3s_agent_kubelet_args" {
-  type        = list(string)
-  default     = []
-  description = "Kubelet args for agent nodes."
-}
+# variable "k3s_agent_kubelet_args" {
+#   type        = list(string)
+#   default     = []
+#   description = "Kubelet args for agent nodes."
+# }
 
 variable "k3s_autoscaler_kubelet_args" {
   type        = list(string)
@@ -1289,11 +1289,11 @@ variable "hzn_clustermesh_lb_ip" {
 # EKS POC-specific variables
 ################################################################################
 
-variable "enable_poc_hybrid_aws" {
-  description = "Enable the AWS external-node hybrid PoC resources."
-  type        = bool
-  default     = false
-}
+# variable "enable_poc_hybrid_aws" {
+#   description = "Enable the AWS external-node hybrid PoC resources."
+#   type        = bool
+#   default     = false
+# }
 
 variable "eks_poc_cluster_name" {
   type    = string
