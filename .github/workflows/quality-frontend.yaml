@@ -13,4 +13,3 @@ jobs:
     uses: ./.github/workflows/reusable-go-quality.yaml
     with:
       service-dir: code/front-end
-      go-version: "1.18"
