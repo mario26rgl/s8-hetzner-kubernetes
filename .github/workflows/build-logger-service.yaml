@@ -76,10 +76,10 @@ jobs:
 
       - name: Update Helm chart with new Docker image tag
         run: |
-          sed -i "s|image: ghcr.io/mario26rgl/logger-service:.*|image: ghcr.io/mario26rgl/logger-service@${{ needs.build-and-push.outputs.digest }}|" \
+          sed -i "s|image: ghcr.io/mario26rgl/logger-service[^\"]*|image: ghcr.io/mario26rgl/logger-service@${{ needs.build-and-push.outputs.digest }}|" \
             kubernetes/apps/logger.yaml
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add kubernetes/apps/logger.yaml
-          git commit -m "chore: update logger-service image digest to ${{ github.sha }}"
-          git push origin main
+          git diff --staged --quiet && echo "No changes to commit" || \
+            git commit -m "chore: update logger-service image digest to ${{ github.sha }}" && git push origin main

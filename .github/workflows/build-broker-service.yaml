@@ -76,10 +76,10 @@ jobs:
 
       - name: Update Helm chart with new Docker image tag
         run: |
-          sed -i "s|image: ghcr.io/mario26rgl/broker-service:.*|image: ghcr.io/mario26rgl/broker-service@${{ needs.build-and-push.outputs.digest }}|" \
+          sed -i "s|image: ghcr.io/mario26rgl/broker-service[^\"]*|image: ghcr.io/mario26rgl/broker-service@${{ needs.build-and-push.outputs.digest }}|" \
             kubernetes/apps/broker.yaml
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add kubernetes/apps/broker.yaml
-          git commit -m "chore: update broker-service image digest to ${{ github.sha }}"
-          git push origin main
+          git diff --staged --quiet && echo "No changes to commit" || \
+            git commit -m "chore: update broker-service image digest to ${{ github.sha }}" && git push origin main
