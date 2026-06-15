@@ -13,7 +13,7 @@ spec:
       valuesObject:
         name: listener-service
         namespace: listener-service
-        image: ghcr.io/mario26rgl/listener-service@sha256:56150da7c7c377f97dbbc8f12df6d5da5bc2077905a92272af013b359a47b8de
+        image: ghcr.io/mario26rgl/listener-service@sha256:59c7cb321159cc20a1efcfe6cc865d489ccb1117da49781f7b8eca5e25c4d198
         replicas: 2
         port: 2112
         resources:
