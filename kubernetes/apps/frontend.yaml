@@ -70,8 +70,8 @@ spec:
                         path: /log
                       - method: POST
                         path: /
-              authentication:
-                mode: required
+              # authentication:
+              #   mode: required
         resources:
           requests:
             cpu: 100m

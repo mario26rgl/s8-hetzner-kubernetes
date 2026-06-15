@@ -36,8 +36,8 @@ spec:
                 #   path: /
                 - method: POST
                   path: /log
-            authentication:
-              mode: required
+            # authentication:
+            #   mode: required
             # Prometheus → broker HTTP (L7: /metrics endpoint for scraping)
           - fromEndpoints:
             - matchLabels:
@@ -78,8 +78,8 @@ spec:
                 http:
                   - method: ".*"
                     path: ".*"
-            authentication:
-              mode: required
+            # authentication:
+            #   mode: required
 
           # → logger-service HTTP (L7)
           - toEndpoints:
@@ -94,8 +94,8 @@ spec:
                 http:
                 - method: ".*"
                   path: ".*"
-            authentication:
-              mode: required
+            # authentication:
+            #   mode: required
 
           # → logger-service gRPC (L7)
           - toEndpoints:
@@ -109,8 +109,8 @@ spec:
               rules:
                 http:  # Cilium parses gRPC as HTTP/2
                   - {}
-            authentication:
-              mode: required
+            # authentication:
+            #   mode: required
 
           # → rabbitmq AMQP (L4 only — Cilium has no AMQP L7 parser)
           - toEndpoints:

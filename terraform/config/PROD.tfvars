@@ -85,7 +85,7 @@ EOT
 
 # Cert-Manager configuration
 acme_email         = "mario_constantin1234@proton.me"
-issuer_environment = "staging"
+issuer_environment = "prod"
 
 # Cilium configuration
 cilium_version                = "1.19.2"
