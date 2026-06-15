@@ -35,10 +35,10 @@ allow_scheduling_on_control_plane = false
 
 # HARDENING
 agent_nodes_custom_config = {
-  protect-kernel-defaults = true
+  protect-kernel-defaults = false # SUSE MicroOS has different kernel defaults
 }
 control_planes_custom_config = {
-  protect-kernel-defaults = true
+  protect-kernel-defaults = false # SUSE MicroOS has different kernel defaults
   secrets-encryption      = true
 }
 k3s_global_kubelet_args = [
@@ -72,6 +72,15 @@ rules:
     resources:
       - group: ""
         resources: ["nodes", "nodes/status"]
+  - level: RequestResponse
+    verbs: ["create", "update", "patch", "delete"]
+    resources:
+      - group: ""
+        resources: ["persistentvolumes", "persistentvolumeclaims"]
+  - level: Metadata
+    resources:
+      - group: "storage.k8s.io"
+        resources: ["storageclasses", "volumeattachments"]
 EOT
 
 # Cert-Manager configuration
@@ -89,7 +98,7 @@ cilium_routing_mode           = "native"
 cilium_clustermesh_enabled    = false
 
 # POC Hybrid AWS-Hetzner
-enable_poc_hybrid_aws = false
+# enable_poc_hybrid_aws = false
 enable_local_storage  = false
 
 # ESO configuration

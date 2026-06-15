@@ -580,7 +580,7 @@ locals {
       "audit-log-maxsize=${var.k3s_audit_log_maxsize}"
     ] : [],
     [
-      "enable-admission-plugins=NodeRestriction,EventRateLimit",
+      "enable-admission-plugins=NodeRestriction",
       "service-account-extend-token-expiration=false"
     ]
   )

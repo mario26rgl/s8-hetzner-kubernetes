@@ -1180,7 +1180,6 @@ variable "argocd_github_username" {
 
 variable "argocd_github_token" {
   type        = string
-  default     = ""
   sensitive   = true
   description = "GitHub Personal Access Token used by ArgoCD to access the private repository and pull images from GHCR."
 }
