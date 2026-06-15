@@ -7,6 +7,8 @@ automatically_upgrade_os                 = false # Development environment
 cluster_name                             = "s8-hetzner"
 disable_selinux                          = true
 
+#test demo flow 
+
 # Cluster Networking
 cni_plugin         = "cilium"
 disable_kube_proxy = true # We use Cilium
