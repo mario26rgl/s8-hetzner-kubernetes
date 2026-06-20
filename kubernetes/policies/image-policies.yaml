@@ -1,5 +1,4 @@
 ---
-# Restrict images to ghcr.io/mario26rgl/ in namespaces labelled app=true
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
@@ -12,10 +11,18 @@ spec:
       match:
         any:
           - resources:
-              kinds: [Pod]
+              kinds:
+                - Pod
               namespaceSelector:
                 matchLabels:
                   app: "true"
+      exclude:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              names:
+                - "cm-acme-http-solver-*"
       skipBackgroundRequests: true
       validate:
         allowExistingViolations: false
@@ -25,7 +32,6 @@ spec:
             pattern:
               image: "ghcr.io/mario26rgl/*"
 ---
-# Disallow latest tag in namespaces labelled app=true
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
@@ -38,10 +44,18 @@ spec:
       match:
         any:
           - resources:
-              kinds: [Pod]
+              kinds:
+                - Pod
               namespaceSelector:
                 matchLabels:
                   app: "true"
+      exclude:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              names:
+                - "cm-acme-http-solver-*"
       skipBackgroundRequests: true
       validate:
         allowExistingViolations: false
@@ -51,33 +65,38 @@ spec:
             pattern:
               image: "?*@sha256:* | ?*:?!(latest)"
 ---
-# Verify Cosign signature for ghcr.io/mario26rgl/ images
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
   name: verify-image-signature
 spec:
   validationFailureAction: Enforce
-  background: false  # signature verification must be at admission time
+  background: false
   rules:
     - name: check-cosign-signature
       match:
         any:
           - resources:
-              kinds: [Pod]
+              kinds:
+                - Pod
               namespaceSelector:
                 matchLabels:
                   app: "true"
+      exclude:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              names:
+                - "cm-acme-http-solver-*"
       skipBackgroundRequests: true
       verifyImages:
         - imageReferences:
             - "ghcr.io/mario26rgl/*"
-          mutateDigest: true	
+          mutateDigest: true
           required: true
-          useCache: true	
+          useCache: true
           verifyDigest: true
-          skipImageReferences:
-            - "ghcr.io/mario26rgl/broker-service:*"  # remove once broker is signed
           attestors:
             - entries:
                 - keys:
