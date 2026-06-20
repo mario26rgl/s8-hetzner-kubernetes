@@ -7,7 +7,7 @@ automatically_upgrade_os                 = false # Development environment
 cluster_name                             = "s8-hetzner"
 disable_selinux                          = true
 
-#test demo flow 
+# test demo
 
 # Cluster Networking
 cni_plugin         = "cilium"
@@ -25,7 +25,7 @@ enable_metrics_server   = true
 enable_argocd           = true
 enable_vpa              = true
 enable_cert_manager     = true
-enable_external_secrets = "true"
+enable_external_secrets = false
 
 # ArgoCD configuration
 argocd_ingress_hostname = "argo.s8-hetzner.online"
