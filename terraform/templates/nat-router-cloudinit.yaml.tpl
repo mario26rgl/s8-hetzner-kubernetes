@@ -18,7 +18,7 @@ write_files:
 %{ endif ~}
     append: true
 
-  # Disable ssh password authentication
+  # Disable ssh password
   - content: |
       Port ${ ssh_port }
       PasswordAuthentication no
