@@ -37,4 +37,4 @@ networkPolicy:
 ingress:
   enabled: false
   hostname: "example.s8-hetzner.online"
-  environment: staging
+  environment: prod
